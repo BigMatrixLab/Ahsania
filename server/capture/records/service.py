@@ -10,7 +10,7 @@ from capture.api.schemas import RecordDetail, RecordSummary
 from capture.app_settings import load_app_settings
 from capture.clock import today
 from capture.config import Settings
-from capture.db.models import ExtractionStatus, Patient, Record, RecordFile, ReviewEvent, Status, User
+from capture.db.models import ExtractionStatus, Patient, Record, RecordFile, ReviewEvent, Status, Template, User
 from capture.formschema.store import get_active, template_def
 from capture.formschema.validate import validate_values
 from capture.jobqueue import queue_extraction, queued_at
@@ -42,6 +42,16 @@ def _check_pages(settings: Settings, pages: list[bytes]) -> None:
             raise UploadRejected(415, "Pages must be JPEG images") from None
 
 
+def _has_form(db: Session, reg_no: str, template_key: str) -> bool:
+    stmt = (
+        select(Record.id)
+        .join(Template, Record.template_id == Template.id)
+        .where(Record.reg_no == reg_no, Template.key == template_key, Record.status != Status.DELETED)
+        .limit(1)
+    )
+    return db.scalar(stmt) is not None
+
+
 def create_record(
     db: Session,
     settings: Settings,
@@ -56,7 +66,8 @@ def create_record(
     """Validate an upload, store its pages and create the record. Nothing is written on rejection.
 
     Returns (record, created). A replay of an earlier upload by the same user returns that record unchanged.
-    With fill_by_hand the record opens as a draft at once and the AI never reads it.
+    With fill_by_hand the record opens as a draft at once and the AI never reads it. A form has no pages at all:
+    it opens as a draft dated today, and a patient has one of each.
     """
     template = get_active(db, template_key)
     if template is None:
@@ -70,7 +81,13 @@ def create_record(
         raise UploadRejected(422, "Use the DICOM upload for this form")
     if template.phase == 3 and not load_app_settings(db).phase3_enabled:
         raise UploadRejected(403, "Locked until Phase 3")
-    _check_pages(settings, pages)
+    is_form = template.kind == "form"
+    if not is_form:
+        _check_pages(settings, pages)
+    elif pages:
+        raise UploadRejected(422, "This form takes no photos")
+    elif _has_form(db, reg_no, template.key):
+        raise UploadRejected(409, "This patient already has this form")
 
     db.execute(pg_insert(Patient).values(reg_no=reg_no).on_conflict_do_nothing())
     record = Record(
@@ -88,7 +105,11 @@ def create_record(
     for page_no, data in enumerate(pages, start=1):
         relative, digest = save_page(settings.storage_dir, record.id, page_no, data)
         db.add(RecordFile(record_id=record.id, kind="page", path=relative, sha256=digest, size=len(data), page_no=page_no))
-    if fill_by_hand:
+    if is_form:
+        visit = today()
+        record.field_values = {template_def(template).document_date_key: visit.isoformat()}
+        record.document_date = visit
+    elif fill_by_hand:
         record.extraction_status = ExtractionStatus.SKIPPED
     else:
         queue_extraction(db, settings, record)

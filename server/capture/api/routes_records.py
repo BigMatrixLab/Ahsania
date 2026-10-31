@@ -33,7 +33,7 @@ def _meta_error(error: ValidationError) -> str:
 def create(
     response: Response,
     meta: str = Form(...),
-    pages: list[UploadFile] = File(...),
+    pages: list[UploadFile] = File(default=[]),
     user: User = Depends(require_roles(Role.DOCTOR)),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),

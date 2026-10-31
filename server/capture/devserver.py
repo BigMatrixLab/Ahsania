@@ -22,7 +22,7 @@ from capture.db.models import User
 from capture.formschema.store import load_templates
 
 SERVER_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = SERVER_DIR / ".devdata"
+DATA_DIR = Path(os.environ.get("CAPTURE_DEV_DATA") or SERVER_DIR / ".devdata")  # e2e and try-outs keep their own folder
 TEMPLATES_DIR = SERVER_DIR.parent / "templates"
 DEMO_PASSWORD = os.environ.get("CAPTURE_DEMO_PASSWORD", "demo-pass-123")  # set your own before exposing the server
 DEMO_USERS = [

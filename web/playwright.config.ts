@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
   webServer: [
     {
       command: "uv run --project ../server --extra ocr python -m capture.devserver --reset --port 8000 --worker stub",
+      env: { CAPTURE_DEV_DATA: fileURLToPath(new URL("../server/.devdata-e2e", import.meta.url)) },
       url: "http://127.0.0.1:8000/api/health",
       timeout: 300_000,
       reuseExistingServer: false,

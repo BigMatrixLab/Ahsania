@@ -156,6 +156,7 @@ class PatientSummary(BaseModel):
     baseline: StudyOut | None
     xrays: list[StudyOut]
     paired: bool
+    profile: dict[str, Any] | None = None  # who the patient is, from their first-visit form
 
 
 class PatientDetail(PatientSummary):

@@ -14,12 +14,21 @@ class Option(_Strict):
     synonyms: list[str] = []
 
 
+class ShowIf(_Strict):
+    """Show the field only when another field of the same level holds one of these answers."""
+
+    key: str = Field(pattern=KEY_PATTERN)
+    values: list[str | bool] = Field(min_length=1)
+
+
 class _FieldBase(_Strict):
     key: str = Field(pattern=KEY_PATTERN)
     label: str | None = None
     hint: str | None = None
     required: bool = False
     source: Literal["dicom"] | None = None
+    section: str | None = None
+    show_if: ShowIf | None = None
 
 
 class TextField(_FieldBase):
@@ -90,13 +99,16 @@ def _check_unique_keys(fields: list, where: str) -> None:
         seen.add(f.key)
         if isinstance(f, GroupField):
             _check_unique_keys(f.fields, f.key)
+    for f in fields:
+        if f.show_if is not None and f.show_if.key not in seen:
+            raise ValueError(f"field '{f.key}' depends on unknown field '{f.show_if.key}'")
 
 
 class TemplateDef(_Strict):
     key: str = Field(pattern=KEY_PATTERN)
     version: int = Field(ge=1)
     phase: Literal[1, 2, 3]
-    kind: Literal["document", "film_photo", "dicom"]
+    kind: Literal["document", "film_photo", "dicom", "form"]  # a form is typed straight into the app, with no photo
     title: str
     fields: list[AnyField] = Field(min_length=1)
 

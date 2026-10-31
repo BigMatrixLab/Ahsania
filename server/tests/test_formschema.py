@@ -64,6 +64,7 @@ def test_document_date_key():
         (lambda r: r["fields"][0].update(options=["CT", "CT"]), "duplicate option value 'CT'"),
         (lambda r: r["fields"][3]["fields"][1].update(min=5, max=1), "min must not be greater than max"),
         (lambda r: r["fields"][1].update(required=False), "the document_date field must be required"),
+        (lambda r: r["fields"][2].update(show_if={"key": "nothing", "values": [True]}), "depends on unknown field 'nothing'"),
     ],
 )
 def test_invalid_templates_are_rejected(change, message):
