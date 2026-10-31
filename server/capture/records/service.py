@@ -5,8 +5,8 @@ from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
-from capture.api.convert import record_detail
-from capture.api.schemas import RecordDetail
+from capture.api.convert import record_detail, record_summary
+from capture.api.schemas import RecordDetail, RecordSummary
 from capture.app_settings import load_app_settings
 from capture.clock import today
 from capture.config import Settings
@@ -126,6 +126,13 @@ def detail_for(db: Session, record: Record) -> RecordDetail:
         duplicates_of(db, record),
         since,
     )
+
+
+def summaries(db: Session, records: list[Record]) -> list[RecordSummary]:
+    ids = [r.id for r in records]
+    latest = last_events(db, ids)
+    sent = sent_to_admin(db, ids)
+    return [record_summary(r, latest.get(r.id), r.id in sent) for r in records]
 
 
 def sent_to_admin(db: Session, record_ids: list[uuid.UUID]) -> set[uuid.UUID]:

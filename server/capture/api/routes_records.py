@@ -6,7 +6,6 @@ from pydantic import ValidationError
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from capture.api.convert import record_summary
 from capture.api.deps import current_user, get_db, get_settings, require_roles
 from capture.api.schemas import CreateMeta, ReadIdOut, RecordDetail, RecordSummary, TransitionIn, ValuesIn
 from capture.clock import today
@@ -18,7 +17,7 @@ from capture.formschema.store import template_def
 from capture.formschema.validate import document_date_of, validate_values
 from capture.jobqueue import cancel_jobs
 from capture.jpeg import check_jpeg
-from capture.records.service import CONFLICT_MESSAGE, UploadRejected, create_record, detail_for, last_events, sent_to_admin
+from capture.records.service import CONFLICT_MESSAGE, UploadRejected, create_record, detail_for, sent_to_admin, summaries
 from capture.storage import resolve_in_storage
 from capture.workflow.rules import Action, TransitionError, can_delete, can_edit, next_status
 
@@ -112,11 +111,7 @@ def list_records(
         stmt = stmt.where(Template.key == template)
     if mine:
         stmt = stmt.where(Record.created_by == user.id)
-    records = list(db.scalars(stmt.order_by(Record.updated_at.desc()).limit(500)))
-    ids = [r.id for r in records]
-    latest = last_events(db, ids)
-    sent = sent_to_admin(db, ids)
-    return [record_summary(r, latest.get(r.id), r.id in sent) for r in records]
+    return summaries(db, list(db.scalars(stmt.order_by(Record.updated_at.desc()).limit(500))))
 
 
 @router.get("/records/{record_id}", response_model=RecordDetail)

@@ -1,5 +1,6 @@
 import json
 import uuid
+from types import SimpleNamespace
 
 import pgserver
 import pytest
@@ -140,6 +141,31 @@ def upload():
         return client.post("/api/records", data={"meta": json.dumps(meta)}, files=files)
 
     return _upload
+
+
+@pytest.fixture
+def team(templates, make_user, login_as):
+    """A logged-in doctor, second doctor and admin, as `team.doctor`; their details are in `team.users`."""
+    roles = {"doctor": "doctor", "doctor2": "doctor", "admin": "admin"}
+    users = {name: make_user(role) for name, role in roles.items()}
+    return SimpleNamespace(users=users, **{name: login_as(user) for name, user in users.items()})
+
+
+@pytest.fixture
+def approved(team, upload):
+    """Take a new upload through the doctor's and the admin's approval; returns the approved record."""
+
+    def _approved(values, *, template_key="radiology_report", reg_no=REG_NO, pages=(JPEG,)) -> dict:
+        record = upload(team.doctor, template_key=template_key, reg_no=reg_no, pages=pages).json()
+        url = f"/api/records/{record['id']}"
+        saved = team.doctor.patch(f"{url}/values", json={"row_version": record["row_version"], "values": values}).json()
+        sent = team.doctor.post(f"{url}/transition", json={"action": "submit", "row_version": saved["row_version"]})
+        assert sent.status_code == 200, sent.text
+        done = team.admin.post(f"{url}/transition", json={"action": "approve", "row_version": sent.json()["row_version"]})
+        assert done.status_code == 200, done.text
+        return done.json()
+
+    return _approved
 
 
 @pytest.fixture

@@ -142,6 +142,26 @@ class RecordDetail(RecordSummary):
     extraction_queued_at: datetime | None = None
 
 
+class StudyOut(BaseModel):
+    date: date
+    image: bool
+    report: bool
+    days_after_baseline: int | None
+
+
+class PatientSummary(BaseModel):
+    reg_no: str
+    record_count: int
+    approved_count: int
+    baseline: StudyOut | None
+    xrays: list[StudyOut]
+    paired: bool
+
+
+class PatientDetail(PatientSummary):
+    records: list[RecordSummary]
+
+
 class ValuesIn(BaseModel):
     row_version: int
     values: dict[str, Any]

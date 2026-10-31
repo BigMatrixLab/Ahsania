@@ -1,16 +1,6 @@
 import copy
-from types import SimpleNamespace
-
-import pytest
 
 VALID = {"modality": "CT", "study_date": "2026-09-01", "lesions": [{"lobe": "RUL", "long_axis_cm": 2.3}]}
-
-
-@pytest.fixture
-def team(templates, make_user, login_as):
-    roles = {"doctor": "doctor", "doctor2": "doctor", "admin": "admin"}
-    users = {name: make_user(role) for name, role in roles.items()}
-    return SimpleNamespace(users=users, **{name: login_as(user) for name, user in users.items()})
 
 
 def save(client, record, values):
