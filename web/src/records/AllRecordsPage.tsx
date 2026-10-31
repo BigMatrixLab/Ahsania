@@ -1,8 +1,10 @@
 import { useSearchParams } from "react-router";
 import { useRecords } from "../api/hooks";
 import type { Status } from "../api/types";
-import { inputClass } from "../ui/styles";
+import { Notice } from "../ui/Notice";
+import { ListSkeleton } from "../ui/Skeleton";
 import { STATUS_LABEL } from "../ui/StatusBadge";
+import { inputClass } from "../ui/styles";
 import { RecordList } from "./RecordList";
 
 export default function AllRecordsPage() {
@@ -24,7 +26,13 @@ export default function AllRecordsPage() {
           ))}
         </select>
       </label>
-      {records.isPending ? <p>Loading…</p> : <RecordList records={records.data ?? []} empty="No records." />}
+      {records.isPending ? (
+        <ListSkeleton />
+      ) : records.isError ? (
+        <Notice tone="error">{records.error.message}</Notice>
+      ) : (
+        <RecordList records={records.data} empty={status ? "No records with this status." : "No records yet."} />
+      )}
     </section>
   );
 }

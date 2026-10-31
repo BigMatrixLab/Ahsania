@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -28,10 +29,15 @@ async function logout() {
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 }
 
+/** A one-tap answer: its radio button is visually hidden, so tap the label as a finger would. */
+async function pick(answer: string) {
+  await page.locator("label", { hasText: new RegExp(`^${answer}$`) }).first().click();
+}
+
 /** Form, one cropped page, then the patient ID (typed over whatever was read off the photo); stops with both upload buttons ready. */
 async function capture(patientId: string) {
   await page.getByRole("link", { name: "New capture" }).click();
-  await expect(page.getByRole("button", { name: /Pathology/ })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /Pathology/, includeHidden: true })).toBeDisabled();
   await page.getByRole("button", { name: /Radiology report/ }).click();
   await page.getByTestId("gallery-input").setInputFiles(REPORT);
   await page.getByRole("button", { name: "Rotate right" }).click();
@@ -41,7 +47,7 @@ async function capture(patientId: string) {
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByText("Reading the patient ID from the photos…")).toHaveCount(0, { timeout: 60_000 });
   await page.getByLabel("Patient ID (RC…)").fill(patientId);
-  await expect(page.getByRole("button", { name: "Let the AI fill it" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Fill it from the photo" })).toBeEnabled();
 }
 
 async function openRecord(patientId: string) {
@@ -73,57 +79,97 @@ test("the admin creates a doctor account", async () => {
 
 let aiRecord = "";
 let handRecord = "";
+let newPatientRecord = "";
 
-test("the doctor refuses a malformed patient ID, then the AI fills the form", async () => {
+test("the doctor refuses a malformed patient ID, then the photo fills the form", async () => {
   await login("dr.test", DOCTOR_PASSWORD);
   await expect(page.getByRole("banner").getByText("Dr. Test", { exact: true })).toBeVisible();
   await capture("12345");
-  await page.getByRole("button", { name: "Let the AI fill it" }).click();
+  await page.getByRole("button", { name: "Fill it from the photo" }).click();
   await expect(page.getByRole("alert")).toHaveText("Patient ID must be RC followed by numbers");
   await page.getByLabel("Patient ID (RC…)").fill("rc 555");
-  await page.getByRole("button", { name: "Let the AI fill it" }).click();
+  await page.getByRole("button", { name: "Fill it from the photo" }).click();
   await expect(page).toHaveURL(/\/records\/[0-9a-f-]{36}$/);
   aiRecord = page.url().split("/").pop()!;
-  await expect(page.getByText("Patient ID RC555")).toBeVisible();
-  // The worker reads the page (PaddleOCR, then the stub model) and turns the record into a pre-filled draft.
+  await expect(page.getByRole("link", { name: "Patient RC555" })).toBeVisible();
+  // The worker reads the page and turns the record into a pre-filled draft.
   await expect(page.getByTestId("record-status")).toHaveText("Draft", { timeout: 90_000 });
 
-  await expect(page.getByLabel("Modality")).toHaveValue("CT");
+  await expect(page.getByRole("radio", { name: "CT", exact: true })).toBeChecked();
   await expect(page.getByLabel("Study date")).toHaveValue("2026-09-01");
+  await expect(page.getByText("1 Sep 2026").first()).toBeVisible();
   await expect(page.getByLabel("Lobe")).toHaveValue("RUL");
   await expect(page.locator('[data-ai="amber"]')).toHaveCount(1);
   await expect(page.locator('[data-ai="amber"]')).toContainText("Short axis");
-  // Tapping a field outlines where the AI read it.
+  // Tapping a field outlines where it was read, and shows that part of the photo right under the field.
   await page.getByLabel("Short axis").focus();
   await expect(page.getByTestId("source-box")).toBeVisible();
-  // A mistake the server flags, then the fix.
+  await expect(page.getByTestId("source-snippet")).toBeVisible();
+  // A mistake the server flags as soon as it saves, then the fix.
   await page.getByLabel("Long axis").fill("abc");
-  await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("must be a number")).toBeVisible();
   await page.getByLabel("Long axis").fill("2.");
   await page.getByLabel("Long axis").pressSequentially("4");
   await expect(page.getByLabel("Long axis")).toHaveValue("2.4");
   await page.getByRole("button", { name: "Approve and send to admin" }).click();
   await expect(page.getByTestId("record-status")).toHaveText("Waiting for admin");
-  await expect(page.getByLabel("Modality")).toBeDisabled();
+  await expect(page.getByRole("radio", { name: "CT", exact: true })).toHaveCount(0);
+  await expect(page.getByText("Modality")).toBeVisible();
 });
 
-test("the doctor fills a second record by hand without waiting for the AI", async () => {
+test("the doctor fills a second record by hand without waiting", async () => {
   await page.goto("/");
   await capture("RC777");
   await page.getByRole("button", { name: "I'll fill it myself" }).click();
   await expect(page).toHaveURL(/\/records\/[0-9a-f-]{36}$/);
   handRecord = page.url().split("/").pop()!;
   await expect(page.getByTestId("record-status")).toHaveText("Draft");
-  await expect(page.getByLabel("Modality")).toHaveValue("");
-  await page.getByLabel("Modality").selectOption("MRI");
+  await expect(page.getByRole("radio", { name: "CT", exact: true })).not.toBeChecked();
+  await pick("MRI");
   await page.getByLabel("Study date").fill("2026-08-15");
   await page.getByRole("button", { name: "Approve and send to admin" }).click();
   await expect(page.getByTestId("record-status")).toHaveText("Waiting for admin");
+});
+
+test("the doctor records a new patient with no photo, and leaving the page loses nothing", async () => {
+  await page.goto("/");
+  await page.getByRole("link", { name: /New patient/ }).click();
+  await page.getByLabel("Patient ID (RC…)").fill("RC900");
+  await page.getByRole("button", { name: "Start first-visit form" }).click();
+  await expect(page).toHaveURL(/\/records\/[0-9a-f-]{36}$/);
+  newPatientRecord = page.url().split("/").pop()!;
+  await expect(page.getByRole("heading", { name: "New patient (lung cancer)" })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Page/ })).toHaveCount(0);
+
+  // Type and leave at once: the answer goes with the doctor.
+  await page.getByLabel(/^Age/).fill("62");
+  await page.getByRole("link", { name: "Home" }).click();
+  await expect(page.getByRole("heading", { name: "My drafts" })).toBeVisible();
+  await page.goto(`/records/${newPatientRecord}`);
+  await expect(page.getByLabel(/^Age/)).toHaveValue("62");
+
+  // Sending too early says what is missing and opens the way to it.
+  await page.getByRole("button", { name: "Approve and send to admin" }).click();
+  await expect(page.getByText("Fix the highlighted fields before approving")).toBeVisible();
+  await expect(page.getByText("Still needed:")).toBeVisible();
+  await page.getByRole("button", { name: "ECOG performance status" }).click();
+  await pick("male");
+  await pick("current");
+  // A conditional question appears only for a smoker.
+  await page.getByLabel("Pack-years").fill("30");
+  await pick("1");
+  await page.getByRole("button", { name: "Approve and send to admin" }).click();
+  await expect(page.getByTestId("record-status")).toHaveText("Waiting for admin");
+
+  // A mistyped ID cannot make a second first-visit form.
+  await page.goto("/new-patient");
+  await page.getByLabel("Patient ID (RC…)").fill("rc900");
+  await page.getByRole("button", { name: "Start first-visit form" }).click();
+  await expect(page.getByRole("link", { name: "Open RC900" })).toBeVisible();
   await logout();
 });
 
-test("the admin sends the AI record back; the doctor fixes it and approves again", async () => {
+test("the admin sends the first record back; the doctor fixes it and approves again", async () => {
   await login("admin");
   await expect(page.getByRole("heading", { name: "Waiting for admin" })).toBeVisible();
   await openRecord("RC555");
@@ -145,9 +191,9 @@ test("the admin sends the AI record back; the doctor fixes it and approves again
   await logout();
 });
 
-test("the admin approves both records", async () => {
+test("the admin approves the records, sees the patients, and downloads the dataset", async () => {
   await login("admin");
-  for (const id of [aiRecord, handRecord]) {
+  for (const id of [aiRecord, handRecord, newPatientRecord]) {
     await page.goto(`/records/${id}`);
     await page.getByRole("button", { name: "Approve", exact: true }).click();
     await expect(page.getByTestId("record-status")).toHaveText("Approved");
@@ -156,6 +202,23 @@ test("the admin approves both records", async () => {
   await page.getByLabel("Show").selectOption("approved");
   await expect(page.getByRole("link", { name: /RC555/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /RC777/ })).toBeVisible();
+
+  await page.getByRole("link", { name: "Patients", exact: true }).click();
+  await page.getByLabel("Find a patient").fill("rc 9");
+  await expect(page.getByText("62 y · male · current smoker, 30 pack-years")).toBeVisible();
+  await page.getByRole("link", { name: /^RC900/ }).click();
+  await expect(page.getByRole("heading", { name: "RC900" })).toBeVisible();
+  await expect(page.getByText("No approved scans yet")).toBeVisible();
+  await page.getByRole("link", { name: "New patient (lung cancer)" }).or(page.getByRole("link", { name: /RC900/ })).first().click();
+  await expect(page.getByRole("heading", { name: "New patient (lung cancer)" })).toBeVisible();
+  await expect(page.getByText("30")).toBeVisible();
+
+  await page.getByRole("link", { name: "Patients", exact: true }).click();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Download dataset" }).click()]);
+  expect(download.suggestedFilename()).toMatch(/^export-\d{8}-\d{6}\.zip$/);
+  const zip = readFileSync(await download.path());
+  expect(zip.includes("manifest.json")).toBe(true);
+  expect(zip.includes("new_patient_lung.csv")).toBe(true);
   await logout();
 });
 

@@ -27,6 +27,10 @@ interface FieldBase {
   hint?: string;
   required: boolean;
   source?: "dicom";
+  /** Long forms group their fields under these headings. */
+  section?: string;
+  /** Ask this only when another answer at the same level is one of these. */
+  show_if?: { key: string; values: (string | boolean)[] };
 }
 export type TextFieldDef = FieldBase & { type: "text" };
 export type NumberFieldDef = FieldBase & { type: "number"; unit?: string; min?: number; max?: number };
@@ -40,7 +44,8 @@ export interface TemplateDef {
   key: string;
   version: number;
   phase: 1 | 2 | 3;
-  kind: "document" | "film_photo" | "dicom";
+  /** A `form` is typed straight into the app, with no photo. */
+  kind: "document" | "film_photo" | "dicom" | "form";
   title: string;
   fields: FieldDef[];
 }
@@ -139,5 +144,28 @@ export interface RecordDetail extends RecordSummary {
   template: TemplateOut;
   errors: FieldError[];
   duplicate_of: string[];
+}
+
+/** One scan of a patient; a report and a film of one date count as one study. */
+export interface Study {
+  date: string;
+  image: boolean;
+  report: boolean;
+  days_after_baseline: number | null;
+}
+
+export interface PatientSummary {
+  reg_no: string;
+  record_count: number;
+  approved_count: number;
+  baseline: Study | null;
+  xrays: Study[];
+  paired: boolean;
+  /** Who the patient is, from their first-visit form. */
+  profile: Record<string, unknown> | null;
+}
+
+export interface PatientDetail extends PatientSummary {
+  records: RecordSummary[];
 }
 

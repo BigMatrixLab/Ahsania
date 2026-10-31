@@ -28,15 +28,15 @@ export default function AccountsPage() {
 
 function AccountTable({ accounts, myId }: { accounts: Account[]; myId: number }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-left text-sm">
-        <thead className="bg-slate-50 text-slate-600">
+        <thead className="hidden bg-slate-50 text-slate-700 md:table-header-group">
           <tr>
-            <th className="p-3">Name</th>
+            <th className="rounded-tl-2xl p-3">Name</th>
             <th className="p-3">ID</th>
             <th className="p-3">Role</th>
             <th className="p-3">Status</th>
-            <th className="p-3" />
+            <th className="rounded-tr-2xl p-3" />
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200">
@@ -71,12 +71,12 @@ function AccountRow({ account: a, isMe }: { account: Account; isMe: boolean }) {
   }
 
   return (
-    <tr>
-      <td className="p-3">{a.name}</td>
-      <td className="p-3 font-mono">{a.username}</td>
-      <td className="p-3">{ROLE_LABEL[a.role]}</td>
-      <td className="p-3">{a.active ? "Active" : "Deactivated"}</td>
-      <td className="space-y-2 p-3">
+    <tr className="block p-3 md:table-row md:p-0">
+      <td className="block font-semibold text-slate-900 md:table-cell md:p-3 md:font-normal">{a.name}</td>
+      <td className="inline-block pr-3 text-slate-700 md:table-cell md:p-3">{a.username}</td>
+      <td className="inline-block pr-3 text-slate-700 md:table-cell md:p-3">{ROLE_LABEL[a.role]}</td>
+      <td className={`inline-block md:table-cell md:p-3 ${a.active ? "text-slate-700" : "font-medium text-amber-800"}`}>{a.active ? "Active" : "Deactivated"}</td>
+      <td className="mt-2 block space-y-2 md:mt-0 md:table-cell md:p-3">
         <div className="flex flex-wrap gap-2">
           {!isMe && (
             <button type="button" disabled={busy} onClick={() => update({ active: !a.active }, a.active ? "Deactivated" : "Reactivated")} className={secondaryButton}>
@@ -145,7 +145,7 @@ function CreateAccount() {
       </label>
       <label className="block">
         <span className="text-sm font-medium">ID</span>
-        <input required value={username} onChange={(e) => setUsername(e.target.value)} placeholder="dr.rahman" autoComplete="off" autoCapitalize="none" spellCheck={false} className={`${inputClass} font-mono`} />
+        <input required value={username} onChange={(e) => setUsername(e.target.value)} placeholder="dr.rahman" autoComplete="off" autoCapitalize="none" spellCheck={false} className={inputClass} />
       </label>
       <label className="block">
         <span className="text-sm font-medium">Password</span>

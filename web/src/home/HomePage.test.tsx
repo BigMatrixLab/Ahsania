@@ -116,7 +116,25 @@ describe("HomePage panels", () => {
     expect(within(sentBack).queryByText("Report 2")).toBeNull();
     const drafts = screen.getByRole("heading", { name: "My drafts" }).closest("section")!;
     expect(within(drafts).getByText("Report 2")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "New capture" })).toBeTruthy();
+  });
+
+  it("keeps a sent-back record in Sent back after the doctor edits it", async () => {
+    vi.stubGlobal("fetch", vi.fn());
+    state.records = [{ ...record("1", "draft", "edit"), sent_to_admin: true }];
+
+    renderHome();
+
+    const sentBack = (await screen.findByRole("heading", { name: "Sent back to me" })).closest("section")!;
+    expect(within(sentBack).getByText("Report 1")).toBeTruthy();
+  });
+
+  it("offers a doctor both ways to begin", async () => {
+    vi.stubGlobal("fetch", vi.fn());
+
+    renderHome();
+
+    expect((await screen.findByRole("link", { name: /New patient/ })).getAttribute("href")).toBe("/new-patient");
+    expect(screen.getByRole("link", { name: /New capture/ }).getAttribute("href")).toBe("/capture");
   });
 
   it("offers Delete only on my drafts that never went to the admin, and asks before deleting", async () => {
@@ -145,6 +163,7 @@ describe("HomePage panels", () => {
     expect(await screen.findByRole("heading", { name: "Waiting for admin" })).toBeTruthy();
     const titles = screen.getAllByText(/^Report /).map((el) => el.textContent);
     expect(titles).toEqual(["Report 1", "Report 3"]);
-    expect(screen.queryByRole("link", { name: "New capture" })).toBeNull();
+    expect(screen.queryByRole("link", { name: /New capture/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /New patient/ })).toBeNull();
   });
 });

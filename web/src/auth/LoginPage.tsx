@@ -32,11 +32,11 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen">
       <div className={`${brandBand} px-4 pb-24 pt-14 text-center`}>
-        <span aria-hidden="true" className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-white/15 text-2xl font-bold">
+        <span aria-hidden="true" className="mx-auto mb-3 grid size-14 place-items-center rounded-2xl bg-white/15 text-2xl font-bold">
           A
         </span>
         <h1 className="text-2xl font-bold">AMCGH Data Capture</h1>
-        <p className="mt-1 text-sm text-white/80">Ahsania Mission Cancer &amp; General Hospital × NSU</p>
+        <p className="mt-1 text-sm text-white/90">Ahsania Mission Cancer &amp; General Hospital × NSU</p>
       </div>
       <div className="relative -mt-16 px-4">
         <form onSubmit={submit} className={`${card} mx-auto max-w-sm space-y-4 p-6 shadow-lg`}>

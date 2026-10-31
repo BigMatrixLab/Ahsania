@@ -1,12 +1,11 @@
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import type { FileOut, SourceBox } from "../api/types";
 import { card, secondaryButton } from "../ui/styles";
 
-/** A box drawn over a page: where a value was read ("source") or where the safety net found an identifier ("hit"). */
-export type PageMark = SourceBox & { tone: "source" | "hit" };
-
-export function PageViewer({ files, marks = [] }: { files: FileOut[]; marks?: PageMark[] }) {
+/** The record's photos. `marks` outline where the tapped field's value was read. */
+export function PageViewer({ files, marks = [] }: { files: FileOut[]; marks?: SourceBox[] }) {
   const pages = files.filter((f) => f.kind === "page");
   const [index, setIndex] = useState(0);
   const [size, setSize] = useState<{ id: string; w: number; h: number } | null>(null);
@@ -25,9 +24,12 @@ export function PageViewer({ files, marks = [] }: { files: FileOut[]; marks?: Pa
   const shown = natural ? marks.filter((m) => m.page === current + 1) : [];
   const pct = (value: number, total: number) => `${(value / total) * 100}%`;
   return (
-    <details open className={`${card} space-y-2 self-start`}>
-      <summary className="cursor-pointer font-medium">
-        Page {current + 1} of {pages.length} — pinch or scroll to zoom
+    <details open className={`${card} group space-y-2 self-start md:sticky md:top-3`}>
+      <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-sm font-medium text-slate-700 [&::-webkit-details-marker]:hidden">
+        <span className="flex-1">
+          Page {current + 1} of {pages.length} · pinch or scroll to zoom
+        </span>
+        <ChevronDown aria-hidden="true" className="size-5 text-slate-500 transition-transform duration-200 group-open:rotate-180" />
       </summary>
       <TransformWrapper key={file.id}>
         <TransformComponent wrapperClass="!w-full" contentClass="!w-full">
@@ -35,15 +37,15 @@ export function PageViewer({ files, marks = [] }: { files: FileOut[]; marks?: Pa
             <img
               src={`/api/files/${file.id}`}
               alt={`Page ${current + 1}`}
-              className="w-full"
+              className="w-full rounded-lg"
               onLoad={(e) => setSize({ id: file.id, w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
             />
             {natural &&
               shown.map((m, i) => (
                 <div
                   key={i}
-                  data-testid={m.tone === "hit" ? "phi-box" : "source-box"}
-                  className={`pointer-events-none absolute border-2 ${m.tone === "hit" ? "border-red-600 bg-red-500/10" : "border-teal-600 bg-teal-500/10"}`}
+                  data-testid="source-box"
+                  className="pointer-events-none absolute rounded-sm border-2 border-teal-600 bg-teal-500/10"
                   style={{
                     left: pct(m.box[0], natural.w),
                     top: pct(m.box[1], natural.h),
@@ -57,8 +59,14 @@ export function PageViewer({ files, marks = [] }: { files: FileOut[]; marks?: Pa
       </TransformWrapper>
       {pages.length > 1 && (
         <div className="flex gap-2">
-          <button type="button" disabled={current === 0} onClick={() => setIndex(current - 1)} className={secondaryButton}>Previous</button>
-          <button type="button" disabled={current === pages.length - 1} onClick={() => setIndex(current + 1)} className={secondaryButton}>Next</button>
+          <button type="button" disabled={current === 0} onClick={() => setIndex(current - 1)} className={`${secondaryButton} flex-1`}>
+            <ChevronLeft aria-hidden="true" className="size-4" />
+            Previous
+          </button>
+          <button type="button" disabled={current === pages.length - 1} onClick={() => setIndex(current + 1)} className={`${secondaryButton} flex-1`}>
+            Next
+            <ChevronRight aria-hidden="true" className="size-4" />
+          </button>
         </div>
       )}
     </details>

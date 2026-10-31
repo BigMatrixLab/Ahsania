@@ -1,9 +1,14 @@
 import type Konva from "konva";
+import { RotateCcw, RotateCw } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Image as KonvaImage, Layer, Rect as KonvaRect, Stage, Transformer } from "react-konva";
 import { clampRect, rotatedSize, scaleRect, type Rect, type Rotation } from "../imaging/geometry";
 import { preparePage, rotateToCanvas, type PreparedPage } from "../imaging/render";
-import { primaryButton, secondaryButton } from "../ui/styles";
+import { Notice } from "../ui/Notice";
+import { primaryButton, quietButton, secondaryButton } from "../ui/styles";
+
+const TEAL = "#0f766e"; // the canvas cannot read Tailwind's colours
+const FRAME_INSET = 12;
 
 interface Props {
   bitmap: ImageBitmap;
@@ -34,7 +39,8 @@ export function CropEditor({ bitmap, onCancel, onDone }: Props) {
   const preview = useMemo(() => rotateToCanvas(bitmap, rotation, 1200), [bitmap, rotation]);
   const stageWidth = displayWidth;
   const stageHeight = displayWidth > 0 ? Math.round((preview.height * displayWidth) / preview.width) : 0;
-  const frame = crop ?? { x: 0, y: 0, w: stageWidth, h: stageHeight };
+  // Set in from the edge so the corner handles can be seen and grabbed; untouched, the whole photo is still used.
+  const frame = crop ?? { x: FRAME_INSET, y: FRAME_INSET, w: stageWidth - 2 * FRAME_INSET, h: stageHeight - 2 * FRAME_INSET };
 
   useEffect(() => setCrop(null), [rotation, stageWidth]);
   useEffect(() => {
@@ -62,9 +68,9 @@ export function CropEditor({ bitmap, onCancel, onDone }: Props) {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold">Crop and straighten</h2>
-      <p className="text-sm text-slate-600">Drag the blue frame's corners so only the document is inside.</p>
-      <div ref={containerRef} className="w-full">
+      <h2 className="text-lg font-semibold text-slate-800">Crop and straighten</h2>
+      <p className="text-sm text-slate-700">Drag the frame's corners so only the document is inside.</p>
+      <div ref={containerRef} className="w-full overflow-hidden rounded-xl">
         {stageWidth > 0 && (
           <Stage width={stageWidth} height={stageHeight}>
             <Layer>
@@ -75,7 +81,7 @@ export function CropEditor({ bitmap, onCancel, onDone }: Props) {
                 y={frame.y}
                 width={frame.w}
                 height={frame.h}
-                stroke="#1d4ed8"
+                stroke={TEAL}
                 strokeWidth={3}
                 draggable
                 onDragEnd={(e) => setCrop({ ...frame, x: e.target.x(), y: e.target.y() })}
@@ -88,18 +94,40 @@ export function CropEditor({ bitmap, onCancel, onDone }: Props) {
                   setCrop({ x: node.x(), y: node.y(), w, h });
                 }}
               />
-              <Transformer ref={transformerRef} rotateEnabled={false} keepRatio={false} />
+              <Transformer
+                ref={transformerRef}
+                rotateEnabled={false}
+                keepRatio={false}
+                enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+                anchorSize={24}
+                anchorCornerRadius={12}
+                anchorStroke={TEAL}
+                anchorFill="#ffffff"
+                borderEnabled={false}
+              />
             </Layer>
           </Stage>
         )}
       </div>
-      {error && <p role="alert" className="text-red-700">{error}</p>}
-      <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => turn(270)} className={secondaryButton}>Rotate left</button>
-        <button type="button" onClick={() => turn(90)} className={secondaryButton}>Rotate right</button>
-        <button type="button" onClick={() => setCrop(null)} className={secondaryButton}>Reset crop</button>
-        <button type="button" onClick={onCancel} className={secondaryButton}>Cancel</button>
-        <button type="button" disabled={busy || stageWidth === 0} onClick={done} className={primaryButton}>
+      {error && <Notice tone="error">{error}</Notice>}
+      <div className="flex flex-wrap justify-center gap-1">
+        <button type="button" onClick={() => turn(270)} className={quietButton}>
+          <RotateCcw aria-hidden="true" className="size-4" />
+          Rotate left
+        </button>
+        <button type="button" onClick={() => turn(90)} className={quietButton}>
+          <RotateCw aria-hidden="true" className="size-4" />
+          Rotate right
+        </button>
+        <button type="button" onClick={() => setCrop(null)} className={quietButton}>
+          Reset crop
+        </button>
+      </div>
+      <div className="flex gap-2">
+        <button type="button" onClick={onCancel} className={secondaryButton}>
+          Cancel
+        </button>
+        <button type="button" disabled={busy || stageWidth === 0} onClick={() => void done()} className={`${primaryButton} flex-1`}>
           {busy ? "Preparing…" : "Use this page"}
         </button>
       </div>

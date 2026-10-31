@@ -28,6 +28,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const links = [
     { to: "/", label: "Home" },
+    { to: "/patients", label: "Patients" },
     { to: "/records", label: "All records" },
   ];
   if (me.role === "admin") links.push({ to: "/accounts", label: "Accounts" });
@@ -36,17 +37,19 @@ export function Layout({ children }: { children: ReactNode }) {
     <OutboxProvider>
       <div className="min-h-screen">
         <header className={brandBand}>
-          <div className="mx-auto max-w-6xl px-4 pb-10 pt-4">
-            <div className="flex items-center gap-3">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/15 font-bold">A</span>
+          <div className="mx-auto max-w-6xl px-4 pb-9 pt-3">
+            <div className="flex items-center gap-2.5">
+              <span aria-hidden="true" className="grid size-8 place-items-center rounded-lg bg-white/15 font-bold">
+                A
+              </span>
               <span className="font-semibold">AMCGH Capture</span>
-              <button type="button" onClick={logout} className="ml-auto rounded-lg border border-white/40 px-3 py-1.5 text-sm font-medium hover:bg-white/10">
+              <button type="button" onClick={() => void logout()} className="ml-auto min-h-9 rounded-lg border border-white/40 px-3 text-sm font-medium transition-colors hover:bg-white/10">
                 Log out
               </button>
             </div>
             {atHome ? (
               <>
-                <p className="mt-4 text-sm text-white/80">{ROLE_LABEL[me.role]}</p>
+                <p className="mt-3 text-sm text-white/90">{ROLE_LABEL[me.role]}</p>
                 <p className="text-xl font-bold">{me.name}</p>
               </>
             ) : (
@@ -54,14 +57,14 @@ export function Layout({ children }: { children: ReactNode }) {
                 {me.name} · {ROLE_LABEL[me.role]}
               </p>
             )}
-            <nav className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+            <nav className="mt-3 flex flex-wrap items-center gap-1.5 text-sm">
               {links.map((link) => (
                 <NavLink
                   key={link.to}
                   to={link.to}
-                  end
+                  end={link.to !== "/patients"}
                   className={({ isActive }) =>
-                    `rounded-full px-3 py-1.5 font-medium ${isActive ? "bg-white text-teal-800" : "bg-white/15 text-white hover:bg-white/25"}`
+                    `inline-flex min-h-9 items-center rounded-full px-3 font-medium transition-colors ${isActive ? "bg-white text-teal-800" : "bg-white/15 text-white hover:bg-white/25"}`
                   }
                 >
                   {link.label}
@@ -71,7 +74,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </nav>
             {logoutError && (
               <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-                Could not sign out — check the connection and try again.
+                Could not sign out. Check the connection and try again.
               </p>
             )}
           </div>
@@ -85,5 +88,5 @@ export function Layout({ children }: { children: ReactNode }) {
 function OutboxCount() {
   const { items } = useOutbox();
   const waiting = items.filter((item) => !item.failed).length;
-  return waiting > 0 ? <span className="rounded-full bg-amber-300 px-3 py-1.5 font-medium text-amber-950">{waiting} waiting to upload</span> : null;
+  return waiting > 0 ? <span className="inline-flex min-h-9 items-center rounded-full bg-amber-300 px-3 font-medium text-amber-950">{waiting} waiting to upload</span> : null;
 }

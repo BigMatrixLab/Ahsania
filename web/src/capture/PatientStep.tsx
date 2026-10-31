@@ -1,6 +1,8 @@
+import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
-import { inputClass, primaryButton, secondaryButton } from "../ui/styles";
+import { Notice } from "../ui/Notice";
+import { inputClass, primaryButton, quietButton, secondaryButton } from "../ui/styles";
 import type { PageDraft } from "./types";
 
 /** Mirrors capture.api.schemas.normalize_reg_no on the server. */
@@ -26,13 +28,15 @@ export async function readRegNo(pages: PageDraft[]): Promise<string | null> {
 
 interface Props {
   pages: PageDraft[];
+  /** Set when the capture started from a patient's page. */
+  initialRegNo?: string;
   onBack: () => void;
   /** Throw an Error to show its message here. */
   onUpload: (regNo: string, fillByHand: boolean) => Promise<void>;
 }
 
-export function PatientStep({ pages, onBack, onUpload }: Props) {
-  const [regNo, setRegNo] = useState("");
+export function PatientStep({ pages, initialRegNo = "", onBack, onUpload }: Props) {
+  const [regNo, setRegNo] = useState(initialRegNo);
   const [reading, setReading] = useState(true);
   const [found, setFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +44,7 @@ export function PatientStep({ pages, onBack, onUpload }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    readRegNo(pages).then((value) => {
+    void readRegNo(pages).then((value) => {
       if (cancelled) return;
       setReading(false);
       if (value) {
@@ -71,33 +75,59 @@ export function PatientStep({ pages, onBack, onUpload }: Props) {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Patient ID</h2>
-      <label className="block">
-        <span className="text-sm font-medium">Patient ID (RC…)</span>
-        <input
-          value={regNo}
-          onChange={(e) => setRegNo(e.target.value)}
-          placeholder={reading ? "Reading from the photos…" : "RC12345"}
-          autoComplete="off"
-          autoCapitalize="characters"
-          className={`${inputClass} font-mono`}
-        />
-      </label>
-      {reading && <p role="status" className="text-sm text-slate-600">Reading the patient ID from the photos…</p>}
-      {!reading && found && <p className="text-sm text-slate-600">Read from the photo — check it is right.</p>}
-      {!reading && !found && <p className="text-sm text-amber-700">No patient ID found on the photos — type it.</p>}
-      {error && <p role="alert" className="text-red-700">{error}</p>}
-      <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={uploading} onClick={onBack} className={secondaryButton}>Back</button>
-        <button type="button" disabled={uploading || !regNo.trim()} onClick={() => upload(false)} className={primaryButton}>
-          Let the AI fill it
+    <div className="mx-auto max-w-md space-y-4 sm:mx-0">
+      <h2 className="text-lg font-semibold text-slate-800">Patient ID</h2>
+      <div>
+        <label className="block">
+          <span className="text-sm font-medium">Patient ID (RC…)</span>
+          <input
+            value={regNo}
+            onChange={(e) => setRegNo(e.target.value)}
+            placeholder={reading ? "Reading from the photos…" : "RC12345"}
+            autoComplete="off"
+            autoCapitalize="characters"
+            className={`${inputClass} tabular-nums`}
+          />
+        </label>
+        <div className="mt-2 text-sm">
+          {reading && (
+            <p role="status" className="flex items-center gap-1.5 text-slate-700">
+              <Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
+              Reading the patient ID from the photos…
+            </p>
+          )}
+          {!reading && found && (
+            <p className="flex items-center gap-1.5 text-teal-800">
+              <CheckCircle2 aria-hidden="true" className="size-4" />
+              Read from the photo. Check it is right.
+            </p>
+          )}
+          {!reading && !found && !regNo && (
+            <p className="flex items-center gap-1.5 text-amber-800">
+              <AlertTriangle aria-hidden="true" className="size-4" />
+              No patient ID found on the photos. Type it.
+            </p>
+          )}
+        </div>
+      </div>
+      {error && <Notice tone="error">{error}</Notice>}
+      <div className="space-y-2">
+        <button type="button" disabled={uploading || !regNo.trim()} onClick={() => void upload(false)} className={`${primaryButton} w-full`}>
+          Fill it from the photo
         </button>
-        <button type="button" disabled={uploading || !regNo.trim()} onClick={() => upload(true)} className={secondaryButton}>
+        <button type="button" disabled={uploading || !regNo.trim()} onClick={() => void upload(true)} className={`${secondaryButton} w-full`}>
           I'll fill it myself
         </button>
+        <button type="button" disabled={uploading} onClick={onBack} className={`${quietButton} w-full`}>
+          Back
+        </button>
       </div>
-      {uploading && <p role="status">Uploading…</p>}
+      {uploading && (
+        <p role="status" className="flex items-center gap-1.5 text-sm text-slate-700">
+          <Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
+          Uploading…
+        </p>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ApiError, api } from "./client";
-import type { Account, Me, RecordDetail, RecordSummary, TemplateOut } from "./types";
+import type { Account, Me, PatientDetail, PatientSummary, RecordDetail, RecordSummary, TemplateOut } from "./types";
 
 export function useMe() {
   return useQuery({
@@ -45,6 +45,14 @@ export function useRecords(filter: RecordFilter, enabled = true) {
     queryFn: () => api<RecordSummary[]>(`/records?${params}`),
     enabled,
   });
+}
+
+export function usePatients() {
+  return useQuery({ queryKey: ["patients"], queryFn: () => api<PatientSummary[]>("/patients") });
+}
+
+export function usePatient(regNo: string) {
+  return useQuery({ queryKey: ["patients", regNo], queryFn: () => api<PatientDetail>(`/patients/${encodeURIComponent(regNo)}`) });
 }
 
 export function useAccounts(enabled: boolean) {
