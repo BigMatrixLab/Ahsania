@@ -8,7 +8,7 @@ def test_templates_need_login(client):
 def test_templates_list_marks_phase3_locked(templates, make_user, login_as, enable_phase3):
     c = login_as(make_user())
     body = c.get("/api/templates").json()
-    assert len(body) == 9
+    assert len(body) == 10
     assert {t["key"] for t in body if t["locked"]} == PHASE3
     radiology = next(t for t in body if t["key"] == "radiology_report")
     assert radiology["definition"]["fields"][0]["key"] == "modality"

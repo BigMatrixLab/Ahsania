@@ -66,6 +66,7 @@ def test_repository_templates_are_valid(db):
         ("xray_film_photo", 1, "film_photo"),
         ("ct_mri_film_photo", 1, "film_photo"),
         ("dicom_series", 1, "dicom"),
+        ("new_patient_lung", 1, "form"),
         ("pathology_molecular_report", 3, "document"),
         ("lab_report", 3, "document"),
         ("treatment_sheet", 3, "document"),
