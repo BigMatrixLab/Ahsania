@@ -32,9 +32,9 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen">
       <div className={`${brandBand} px-4 pb-24 pt-14 text-center`}>
-        <div className="mx-auto mb-4 flex w-fit items-center gap-4 rounded-2xl bg-white px-4 py-3 shadow">
+        <div className="mx-auto mb-4 flex w-fit items-center gap-4">
           <img src="/logo-amcgh.png" alt="Ahsania Mission Cancer & General Hospital" className="h-16 w-auto" />
-          <span aria-hidden="true" className="h-12 w-px bg-slate-200" />
+          <span aria-hidden="true" className="h-12 w-px bg-white/30" />
           <img src="/logo-bigmatrix.png" alt="Big-Matrix Lab, Research & Development" className="h-12 w-auto" />
         </div>
         <h1 className="text-2xl font-bold">AMCGH Data Capture</h1>
