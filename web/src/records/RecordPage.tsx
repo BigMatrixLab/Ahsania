@@ -119,6 +119,12 @@ function RecordView({ record: r }: { record: RecordDetail }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // On a phone the photo sits above the form, so the comment box and its Confirm can open below the screen.
+  const bar = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (dialog) bar.current?.scrollIntoView({ block: "end" });
+  }, [dialog]);
+
   async function run(action: UiAction, withComment?: string) {
     setBusy(true);
     setMessage(null);
@@ -166,7 +172,7 @@ function RecordView({ record: r }: { record: RecordDetail }) {
   );
 
   const actionBar = (
-    <div className="sticky bottom-0 z-10 -mx-4 space-y-2 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur empty:hidden md:mx-0 md:rounded-2xl md:border md:shadow-sm">
+    <div ref={bar} className="sticky bottom-0 z-10 -mx-4 space-y-2 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur empty:hidden md:mx-0 md:rounded-2xl md:border md:shadow-sm">
       {editable && <SaveStatus state={saveState} dirty={!sameValues(values, r.values)} />}
       {message && (
         <p role="status" className="text-sm font-medium text-slate-800">

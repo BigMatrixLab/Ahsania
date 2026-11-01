@@ -172,7 +172,12 @@ test("the admin sends the first record back; the doctor fixes it and approves ag
   await login("admin");
   await expect(page.getByRole("heading", { name: "Waiting for admin" })).toBeVisible();
   await openRecord("RC555");
+  // On a phone the photo sits above the form: the admin must still see where to confirm.
+  await page.setViewportSize({ width: 390, height: 560 });
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.getByRole("button", { name: "Send back…" }).click();
+  await expect(page.getByRole("button", { name: "Confirm" })).toBeInViewport({ ratio: 1 });
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.getByLabel("What needs fixing?").fill("Please check the short axis");
   await page.getByRole("button", { name: "Confirm" }).click();
   await expect(page.getByRole("status")).toHaveText("Sent back to the doctor");
