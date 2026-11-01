@@ -39,9 +39,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <header className={brandBand}>
           <div className="mx-auto max-w-6xl px-4 pb-9 pt-3">
             <div className="flex items-center gap-2.5">
-              <span aria-hidden="true" className="grid size-8 place-items-center rounded-lg bg-white/15 font-bold">
-                A
-              </span>
+              <img src="/logo-amcgh.png" alt="" className="size-8 rounded-lg bg-white object-contain p-0.5" />
               <span className="font-semibold">AMCGH Capture</span>
               <button type="button" onClick={() => void logout()} className="ml-auto min-h-9 rounded-lg border border-white/40 px-3 text-sm font-medium transition-colors hover:bg-white/10">
                 Log out
