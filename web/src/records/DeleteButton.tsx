@@ -17,6 +17,7 @@ export function DeleteButton({ recordId, onDeleted }: { recordId: string; onDele
       await api<void>(`/records/${recordId}`, { method: "DELETE" });
       queryClient.removeQueries({ queryKey: ["record", recordId] });
       void queryClient.invalidateQueries({ queryKey: ["records"] });
+      void queryClient.invalidateQueries({ queryKey: ["patients"] });
       onDeleted?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Delete failed");

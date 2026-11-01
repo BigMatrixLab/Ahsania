@@ -24,7 +24,7 @@ export function RecordList({ records, empty }: { records: RecordSummary[]; empty
   return (
     <ul className="space-y-2">
       {records.map((r) => (
-        <li key={r.id} className={`relative rounded-2xl border border-l-4 border-slate-200 bg-white shadow-sm ${edge(r)}`}>
+        <li key={r.id} className={`rounded-2xl border border-l-4 border-slate-200 bg-white shadow-sm ${edge(r)}`}>
           <Link to={`/records/${r.id}`} className="block rounded-2xl p-3 transition-colors hover:bg-slate-50">
             <span className="flex items-center gap-2">
               <span className="font-semibold tabular-nums text-slate-900">{r.reg_no}</span>
@@ -43,7 +43,7 @@ export function RecordList({ records, empty }: { records: RecordSummary[]; empty
             </span>
           </Link>
           {canDelete(me, r) && (
-            <div className="absolute bottom-0 right-1 max-w-[calc(100%-0.5rem)] rounded-xl bg-white">
+            <div className="-mt-2 flex justify-end px-1 pb-1">
               <DeleteButton recordId={r.id} />
             </div>
           )}
