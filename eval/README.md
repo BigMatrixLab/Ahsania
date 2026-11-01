@@ -4,10 +4,11 @@ Synthetic documents with known values, used to measure the model's per-field acc
 Every document is made up; no real patient appears.
 
     cd server
-    uv run capture eval            # the model at CAPTURE_VLM_URL (needs the GPU server)
+    uv run --extra ocr capture eval --rules   # OCR and plain rules, as the app runs today
+    uv run capture eval            # a model at CAPTURE_VLM_URL (needs a GPU server)
     uv run capture eval --stub     # checks the harness only (fixed answers, not a model)
 
-Run it after every model or prompt change. S3 asks for at least 90 % field accuracy on typed documents.
+The rules were written knowing how these documents are worded, so their score here does not predict real reports. Run it after every change to the rules, model or prompt. S3 asks for at least 90 % field accuracy on typed documents.
 
 ## Layout
 

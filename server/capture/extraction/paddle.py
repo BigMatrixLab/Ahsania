@@ -27,6 +27,8 @@ class PaddleOcrEngine:
                 use_doc_unwarping=False,
                 use_textline_orientation=False,
                 enable_mkldnn=self._settings.ocr_enable_mkldnn,
+                text_det_limit_side_len=self._settings.ocr_det_limit_side_len,
+                text_det_limit_type="max",
             )
         return self._ocr
 
@@ -37,7 +39,7 @@ class PaddleOcrEngine:
             rgb = np.asarray(picture.convert("RGB"))
         result = self._engine().predict(np.ascontiguousarray(rgb[:, :, ::-1]))[0]  # PaddleOCR expects OpenCV's BGR order
         return [
-            OcrLine(page, text, tuple(int(v) for v in box))
-            for text, box in zip(result["rec_texts"], result["rec_boxes"])
+            OcrLine(page, text, tuple(int(v) for v in box), float(score))
+            for text, box, score in zip(result["rec_texts"], result["rec_boxes"], result["rec_scores"])
             if text.strip()
         ]

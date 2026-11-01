@@ -20,7 +20,9 @@ class Settings(BaseSettings):
     vlm_timeout_s: float = 120
     vlm_max_image_side: int = 1600  # pages are shrunk to this long side before they go to the model
     confidence_threshold: float = 0.85  # spec §5.2: below this a field is amber
-    worker_poll_s: float = 2.0  # how long an idle worker waits before looking for jobs again
+    reader: str = "rules"  # how forms are filled: "rules" (OCR and plain rules, CPU only) or "vlm" (the model at vlm_url)
+    worker_poll_s: float = 1.0  # how long an idle worker waits before looking for jobs again
+    ocr_det_limit_side_len: int = 1280  # measured: 10 s a page down to 6 s, same text; more threads gave nothing
     ocr_det_model: str = "PP-OCRv5_mobile_det"  # PaddleOCR text detection (CPU-friendly)
     ocr_rec_model: str = "en_PP-OCRv5_mobile_rec"  # PaddleOCR English recognition
     ocr_enable_mkldnn: bool = False  # PaddlePaddle 3.3's oneDNN path crashes on Windows CPUs

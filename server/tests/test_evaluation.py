@@ -6,12 +6,13 @@ import yaml
 from typer.testing import CliRunner
 
 from capture.cli import app as cli
-from capture.evaluation import report, run_eval, score
+from capture.evaluation import by_model, by_rules, report, run_eval, score
 from capture.extraction.stub import STUB_VALUES, stub_transport
 from capture.extraction.vlm import VlmClient
 from capture.formschema.model import TemplateDef
 from capture.formschema.validate import validate_values
 from constants import PHOTO, REPO_DIR, TEMPLATES_DIR
+from fakes import FakeOcr
 
 GOLDEN = REPO_DIR / "eval" / "golden"
 runner = CliRunner()
@@ -59,7 +60,7 @@ def test_ignored_fields_are_not_scored():
 def test_a_run_scores_each_case_and_reports_against_the_s3_target(tmp_path):
     write_case(tmp_path, "radiology_report", "case-01", STUB_VALUES["radiology_report"])
     write_case(tmp_path, "radiology_report", "case-02", {**STUB_VALUES["radiology_report"], "modality": "MRI"})
-    results = run_eval(tmp_path, TEMPLATES_DIR, model())
+    results = run_eval(tmp_path, TEMPLATES_DIR, by_model(model()))
     assert [(r.case, r.correct, r.total, r.wrong) for r in results] == [("case-01", 7, 7, []), ("case-02", 6, 7, ["modality"])]
     text = report(results)
     assert "radiology_report" in text
@@ -69,7 +70,7 @@ def test_a_run_scores_each_case_and_reports_against_the_s3_target(tmp_path):
 
 def test_a_model_error_counts_every_field_as_wrong(tmp_path):
     write_case(tmp_path, "radiology_report", "case-01", STUB_VALUES["radiology_report"])
-    [result] = run_eval(tmp_path, TEMPLATES_DIR, model(httpx.MockTransport(lambda request: httpx.Response(500))))
+    [result] = run_eval(tmp_path, TEMPLATES_DIR, by_model(model(httpx.MockTransport(lambda request: httpx.Response(500)))))
     assert (result.correct, result.total, result.error) == (0, 7, "model server answered 500")
 
 
@@ -96,3 +97,9 @@ def test_the_committed_golden_set_is_valid_for_its_templates():
         values = {key: value for key, value in spec["values"].items() if value is not None}
         errors = [e for e in validate_values(tpl, values, date(2026, 10, 5)) if e["path"] not in spec["ignore"]]
         assert errors == [], expected_file
+
+
+def test_rules_are_scored_on_what_the_ocr_reads(tmp_path):
+    write_case(tmp_path, "xray_film_photo", "case-01", {"study_date": "2025-12-28", "view": "PA", "side_marker": "L", "capture_source": None}, ignore=["capture_source"])
+    [result] = run_eval(tmp_path, TEMPLATES_DIR, by_rules(FakeOcr("28-12-2025", "PA", "L")))
+    assert (result.correct, result.total, result.wrong) == (3, 3, [])

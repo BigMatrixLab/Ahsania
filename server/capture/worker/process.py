@@ -13,6 +13,7 @@ from capture.config import Settings
 from capture.db.models import ExtractionStatus, JobStatus, Record, Status
 from capture.extraction.assemble import build_extraction, conform
 from capture.extraction.ocr import OcrEngine, OcrLine
+from capture.extraction.rules import RULES_MODEL, read_by_rules
 from capture.extraction.spans import field_confidences
 from capture.extraction.vlm import VlmClient, VlmError, VlmUnavailable
 from capture.formschema.model import TemplateDef
@@ -27,7 +28,7 @@ log = logging.getLogger("capture.worker")
 @dataclass
 class Engines:
     ocr: OcrEngine
-    vlm: VlmClient
+    vlm: VlmClient | None = None  # None: the forms are filled by plain rules, with no model
 
 
 def _load(sessions: sessionmaker, settings: Settings, claimed: ClaimedJob) -> tuple[TemplateDef, list[bytes]] | None:
@@ -97,15 +98,20 @@ def process_job(
         lines: list[OcrLine] = []
         for page_no, image in enumerate(pages, start=1):
             lines.extend(engines.ocr.read(page_no, image))
-        answer = engines.vlm.extract(tpl, pages)
-        try:
-            raw = json.loads(answer.text, parse_constant=_no_constants)
-        except ValueError:
-            raise VlmError("the model's answer was not JSON") from None
+        known_sources: dict | None = None
+        if engines.vlm is None:
+            found = read_by_rules(tpl, lines)
+            raw, confidences, known_sources, model = found.values, found.confidences, found.sources, RULES_MODEL
+        else:
+            answer = engines.vlm.extract(tpl, pages)
+            try:
+                raw = json.loads(answer.text, parse_constant=_no_constants)
+            except ValueError:
+                raise VlmError("the model's answer was not JSON") from None
+            confidences, model = field_confidences(answer.text, answer.tokens), answer.model
         values = conform(tpl, raw)
         errors = validate_values(tpl, values, today())
-        confidences = field_confidences(answer.text, answer.tokens)
-        extraction = build_extraction(tpl, values, confidences, lines, errors, settings.confidence_threshold, answer.model)
+        extraction = build_extraction(tpl, values, confidences, lines, errors, settings.confidence_threshold, model, known_sources)
         return _finish(sessions, claimed, _result(tpl, values, extraction))
     except VlmUnavailable as e:
         with sessions.begin() as db:

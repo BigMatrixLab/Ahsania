@@ -9,6 +9,7 @@ class OcrLine:
     page: int  # 1-based
     text: str
     box: tuple[int, int, int, int]  # x0, y0, x1, y1 in the stored page's pixels
+    score: float = 1.0  # how sure the OCR is of this line, 0 to 1
 
 
 class OcrEngine(Protocol):

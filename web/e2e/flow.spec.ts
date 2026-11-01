@@ -92,15 +92,14 @@ test("the doctor refuses a malformed patient ID, then the photo fills the form",
   await expect(page).toHaveURL(/\/records\/[0-9a-f-]{36}$/);
   aiRecord = page.url().split("/").pop()!;
   await expect(page.getByRole("link", { name: "Patient RC555" })).toBeVisible();
-  // The worker reads the page and turns the record into a pre-filled draft.
+  // The worker reads the page with real OCR and plain rules, and turns the record into a pre-filled draft.
   await expect(page.getByTestId("record-status")).toHaveText("Draft", { timeout: 90_000 });
 
   await expect(page.getByRole("radio", { name: "CT", exact: true })).toBeChecked();
   await expect(page.getByLabel("Study date")).toHaveValue("2026-09-01");
   await expect(page.getByText("1 Sep 2026").first()).toBeVisible();
   await expect(page.getByLabel("Lobe")).toHaveValue("RUL");
-  await expect(page.locator('[data-ai="amber"]')).toHaveCount(1);
-  await expect(page.locator('[data-ai="amber"]')).toContainText("Short axis");
+  await expect(page.locator('[data-field="lesions[0].short_axis_cm"]')).toHaveAttribute("data-ai", "green");
   // Tapping a field outlines where it was read, and shows that part of the photo right under the field.
   await page.getByLabel("Short axis").focus();
   await expect(page.getByTestId("source-box")).toBeVisible();

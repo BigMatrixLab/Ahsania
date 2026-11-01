@@ -9,7 +9,7 @@ from capture.auth.sessions import revoke_all_for_user
 from capture.config import Settings
 from capture.db.base import make_sessionmaker
 from capture.db.models import Role, User
-from capture.evaluation import report, run_eval
+from capture.evaluation import by_model, by_rules, report, run_eval
 from capture.extraction.stub import stub_transport
 from capture.extraction.vlm import client_from_settings
 from capture.formschema.store import TemplateConflict, load_templates
@@ -82,10 +82,16 @@ def users_deactivate(username: str) -> None:
 def eval_command(
     golden: Path = typer.Option(REPO_GOLDEN, help="Folder of <template>/<case>/ golden documents"),
     stub: bool = typer.Option(False, help="Use the built-in stub model: checks the harness, not a real model"),
+    rules: bool = typer.Option(False, help="Score OCR plus plain rules instead of a model; needs the OCR extra"),
 ) -> None:
-    """Measure the model's per-field accuracy on the synthetic golden set (spec §11.3)."""
-    client = client_from_settings(Settings(), stub_transport() if stub else None)
-    results = run_eval(golden, REPO_TEMPLATES, client)
+    """Measure per-field accuracy on the synthetic golden set (spec §11.3)."""
+    if rules:
+        from capture.extraction.paddle import PaddleOcrEngine
+
+        read = by_rules(PaddleOcrEngine(Settings()))
+    else:
+        read = by_model(client_from_settings(Settings(), stub_transport() if stub else None))
+    results = run_eval(golden, REPO_TEMPLATES, read)
     if not results:
         _fail(f"no golden documents found in {golden}")
     typer.echo(report(results))

@@ -33,7 +33,7 @@ def test_the_data_folder_can_be_moved_so_tests_never_touch_the_dev_database(tmp_
 def test_the_worker_needs_the_ocr_extra(monkeypatch, settings):
     monkeypatch.setattr(devserver.importlib.util, "find_spec", lambda name: None)
     with pytest.raises(SystemExit, match="OCR extra"):
-        devserver.start_worker(settings, "stub")
+        devserver.start_worker(settings, "rules", None)
 
 
 def test_the_api_process_loads_neither_the_ocr_engine_nor_the_worker_at_startup():

@@ -68,13 +68,17 @@ def build_extraction(
     errors: list[dict[str, str]],
     threshold: float,
     model: str,
+    known_sources: dict[str, list[dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
-    """{"model": ..., "fields": {path: {"value", "confidence", "colour", "sources"}}} for every leaf field (spec §5.2 step 6)."""
+    """{"model": ..., "fields": {path: {"value", "confidence", "colour", "sources"}}} for every leaf field (spec §5.2 step 6).
+
+    known_sources holds where a value was read, when the reader knows; the rest are looked for in the OCR lines.
+    """
     error_paths = {e["path"] for e in errors}
     fields: dict[str, Any] = {}
     for path, f, value in _leaves(tpl.fields, values, ""):
         confidence = confidences.get(path)
-        sources = [] if _is_empty(value) else find_sources(f, value, lines)
+        sources = [] if _is_empty(value) else ((known_sources or {}).get(path) or find_sources(f, value, lines))
         if path in error_paths:
             colour = RED
         elif _is_empty(value):

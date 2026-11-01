@@ -25,7 +25,7 @@ export function useRecord(id: string) {
   return useQuery({
     queryKey: ["record", id],
     queryFn: () => api<RecordDetail>(`/records/${id}`),
-    refetchInterval: (query) => (query.state.data?.status === "processing" ? 3000 : false),
+    refetchInterval: (query) => (query.state.data?.status === "processing" ? 1500 : false),
   });
 }
 

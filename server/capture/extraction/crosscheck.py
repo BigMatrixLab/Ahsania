@@ -20,7 +20,7 @@ _DATE_TOKENS = [
 ]
 
 
-def _source(lines: list[OcrLine]) -> dict[str, Any]:
+def source_of(lines: list[OcrLine]) -> dict[str, Any]:
     boxes = [line.box for line in lines]
     return {
         "page": lines[0].page,
@@ -41,7 +41,7 @@ def _numbers_in(line: str, unit: str | None) -> set[float]:
     return found
 
 
-def _dates_in(line: str) -> set[date]:
+def dates_in(line: str) -> set[date]:
     found: set[date] = set()
     for pattern in _DATE_TOKENS:
         for match in pattern.finditer(line):
@@ -56,7 +56,7 @@ def _dates_in(line: str) -> set[date]:
     return found
 
 
-def _contains_term(line: str, term: str) -> bool:
+def contains_term(line: str, term: str) -> bool:
     return re.search(rf"(?<![A-Za-z0-9]){re.escape(term)}(?![A-Za-z0-9])", line, re.IGNORECASE) is not None
 
 
@@ -70,12 +70,12 @@ def _single_line_match(field: Any, value: Any, line: OcrLine) -> bool:
             wanted = date.fromisoformat(value) if isinstance(value, str) else None
         except ValueError:
             return False
-        return wanted is not None and wanted in _dates_in(line.text)
+        return wanted is not None and wanted in dates_in(line.text)
     if isinstance(field, EnumField):
         option = next((o for o in field.options if o.value == value), None)
         if option is None:
             return False
-        return any(_contains_term(line.text, term) for term in [option.value, *option.synonyms])
+        return any(contains_term(line.text, term) for term in [option.value, *option.synonyms])
     return False
 
 
@@ -114,5 +114,5 @@ def find_sources(field: Any, value: Any, lines: list[OcrLine]) -> list[dict[str,
         if not isinstance(value, str):
             return []
         run = _text_match(value, lines)
-        return [_source(run)] if run else []
-    return [_source([line]) for line in lines if _single_line_match(field, value, line)]
+        return [source_of(run)] if run else []
+    return [source_of([line]) for line in lines if _single_line_match(field, value, line)]

@@ -17,7 +17,7 @@ from capture.worker.process import Engines
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     settings = Settings()
-    engines = Engines(ocr=PaddleOcrEngine(settings), vlm=client_from_settings(settings))
+    engines = Engines(ocr=PaddleOcrEngine(settings), vlm=client_from_settings(settings) if settings.reader == "vlm" else None)
     stop = threading.Event()
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, lambda *_: stop.set())

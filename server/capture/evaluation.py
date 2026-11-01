@@ -2,6 +2,7 @@
 
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,8 @@ import yaml
 from rapidfuzz import fuzz
 
 from capture.extraction.assemble import conform
+from capture.extraction.ocr import OcrEngine
+from capture.extraction.rules import read_by_rules
 from capture.extraction.vlm import VlmClient, VlmError, VlmUnavailable
 from capture.formschema.diff import flatten
 from capture.formschema.model import GroupField, NumberField, TemplateDef, TextField
@@ -79,7 +82,19 @@ def score(tpl: TemplateDef, expected: dict, actual: dict, ignore: set[str]) -> t
     return correct, total, extra, wrong
 
 
-def run_eval(golden: Path, templates_dir: Path, client: VlmClient) -> list[CaseResult]:
+def by_model(client: VlmClient) -> Callable[[TemplateDef, list[bytes]], Any]:
+    return lambda tpl, pages: json.loads(client.extract(tpl, pages).text)
+
+
+def by_rules(ocr: OcrEngine) -> Callable[[TemplateDef, list[bytes]], Any]:
+    def read(tpl: TemplateDef, pages: list[bytes]) -> Any:
+        lines = [line for number, page in enumerate(pages, start=1) for line in ocr.read(number, page)]
+        return read_by_rules(tpl, lines).values
+
+    return read
+
+
+def run_eval(golden: Path, templates_dir: Path, read: Callable[[TemplateDef, list[bytes]], Any]) -> list[CaseResult]:
     results: list[CaseResult] = []
     for expected_file in sorted(Path(golden).glob("*/*/expected.json")):
         case_dir = expected_file.parent
@@ -89,7 +104,7 @@ def run_eval(golden: Path, templates_dir: Path, client: VlmClient) -> list[CaseR
         result = CaseResult(key, case_dir.name, spec.get("style", "typed"))
         pages = [page.read_bytes() for page in sorted(case_dir.glob("page-*.jpg"))]
         try:
-            actual = conform(tpl, json.loads(client.extract(tpl, pages).text))
+            actual = conform(tpl, read(tpl, pages))
         except (VlmError, VlmUnavailable, ValueError) as e:
             result.error = str(e)
             actual = {}
