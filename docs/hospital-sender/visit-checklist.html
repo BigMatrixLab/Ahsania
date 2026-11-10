@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AMCGH Visit Checklist</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+  :root { --ink:#1b2a2f; --muted:#5b6b70; --teal:#0f766e; --line:#c9d3d5; --soft:#eef6f5; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); font-size: 10.5pt; line-height: 1.4; margin: 0; background:#fff; }
+  h1 { font-size: 20pt; color: var(--teal); margin: 0 0 2mm; }
+  .sub { color: var(--muted); margin: 0 0 5mm; }
+  h2 { font-size: 13pt; color: #fff; background: var(--teal); padding: 1.6mm 3mm; margin: 7mm 0 2mm; border-radius: 1.5mm; break-after: avoid; }
+  .intro { background: var(--soft); border-left: 3px solid var(--teal); padding: 3mm 4mm; margin-bottom: 4mm; }
+  .intro p { margin: 0 0 2mm; }
+  .intro p:last-child { margin: 0; }
+  .meta { display:grid; grid-template-columns: 1fr 1fr; gap: 2mm 6mm; margin: 3mm 0 2mm; }
+  .meta div { border-bottom: 1px solid var(--line); padding: 2mm 0 1mm; color: var(--muted); font-size: 9.5pt; }
+  ol.q { list-style: none; padding: 0; margin: 0; counter-reset: none; }
+  ol.q li { border: 1px solid var(--line); border-radius: 1.5mm; padding: 2.2mm 3mm 2.5mm; margin: 0 0 2mm; break-inside: avoid; }
+  .n { color: var(--teal); font-weight: 700; margin-right: 1.5mm; }
+  .qt { font-weight: 600; }
+  .why { color: var(--muted); font-size: 9pt; margin-top: 0.6mm; }
+  .guess { font-size: 9pt; margin-top: 1mm; background: #fff7e0; border-radius: 1mm; padding: 0.6mm 2mm; display: inline-block; }
+  .guess b { color: #8a5a00; }
+  .ans { border-bottom: 1px dotted #9aa8ab; height: 6mm; margin-top: 1mm; }
+  .ans.two { height: 12mm; background: repeating-linear-gradient(to bottom, transparent 0, transparent 5.5mm, #9aa8ab 5.5mm, #9aa8ab 5.8mm); border-bottom: none; }
+  ul.see { list-style: none; padding: 0; margin: 0; }
+  ul.see li { padding: 1.4mm 0 1.4mm 7mm; position: relative; border-bottom: 1px solid #edf1f2; break-inside: avoid; }
+  ul.see li::before { content: ""; position: absolute; left: 0; top: 2mm; width: 3.6mm; height: 3.6mm; border: 1.3px solid var(--teal); border-radius: 0.6mm; }
+  .small { font-size: 9pt; color: var(--muted); }
+  .key { font-size: 9pt; color: var(--muted); margin: 0 0 3mm; }
+  .key span { background:#fff7e0; padding: 0 1.5mm; border-radius: 1mm; color:#8a5a00; font-weight:600; }
+  .top { color: #b42318; font-weight: 700; font-size: 8.5pt; margin-left: 1.5mm; }
+</style>
+</head>
+<body>
+
+<h1>AMCGH visit checklist — automatic data sending</h1>
+<p class="sub">NSU × AMCGH lung cancer imaging research · prepared 10 November 2026</p>
+
+<div class="intro">
+  <p><b>What we want to set up.</b> A small program on one hospital computer. Every 3 days it collects the new X-ray, CT and report files, puts them in one zip file, and sends that file securely over the internet to the NSU research server. It only reads files; it never changes, moves or deletes anything. Hospital staff do not need to do anything after it is set up. This replaces carrying files to NSU on an SSD.</p>
+  <p><b>Why we are asking.</b> We have not yet seen the hospital's software or computers, so we cannot build it correctly without these answers. Some questions we think we already know — those show <span style="background:#fff7e0;color:#8a5a00;font-weight:600;padding:0 1mm;border-radius:1mm">Our guess</span>. Please still confirm them.</p>
+</div>
+
+<div class="meta">
+  <div>Date of visit:</div>
+  <div>Visited by (NSU):</div>
+  <div>Met with (name, role):</div>
+  <div>Phone / email of hospital IT contact:</div>
+</div>
+
+<p class="key"><b class="top" style="margin:0">MUST</b> = we cannot start building without this answer.</p>
+
+<h2>1. People and permission</h2>
+<ol class="q">
+  <li><span class="n">1.1</span><span class="qt">Who in hospital IT will be our contact for this program?</span><span class="top">MUST</span>
+    <div class="why">Someone has to install it, and someone has to call if it stops.</div><div class="ans"></div></li>
+  <li><span class="n">1.2</span><span class="qt">Who must approve installing an outside program that sends data out of the hospital? Is there a written form or policy?</span><span class="top">MUST</span>
+    <div class="why">Some hospitals need IT head, director or data-protection approval first.</div><div class="ans two"></div></li>
+  <li><span class="n">1.3</span><span class="qt">Does the ethics approval and the MoU cover sending data automatically over the internet (not only by hand / SSD)?</span><span class="top">MUST</span>
+    <div class="why">The approval may name how data is moved.</div>
+    <div class="guess"><b>Our guess:</b> ethics approval is obtained; whether it names the transfer method is not known.</div><div class="ans"></div></li>
+  <li><span class="n">1.4</span><span class="qt">Should it send files for <u>all</u> patients, or <u>only patients in the study</u>?</span><span class="top">MUST</span>
+    <div class="why">If only study patients, we need a rule to pick their files (see 6.3).</div><div class="ans"></div></li>
+  <li><span class="n">1.5</span><span class="qt">Does the hospital need to see or check the program's code before it is installed?</span>
+    <div class="why">We can share the code and explain it.</div><div class="ans"></div></li>
+</ol>
+
+<h2>2. The hospital software</h2>
+<ol class="q">
+  <li><span class="n">2.1</span><span class="qt">What is the name of the hospital's main software (patient records, billing, lab, radiology)? Which company made it, and which version?</span><span class="top">MUST</span>
+    <div class="why">Tells us what it can export and whether the company can help.</div><div class="ans"></div></li>
+  <li><span class="n">2.2</span><span class="qt">Is it a program installed on each PC, or a website used in a browser? Is it on a hospital server or online (cloud)?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">2.3</span><span class="qt">What is it built with (programming language) and which database does it use (SQL Server, MySQL, Oracle, other)?</span>
+    <div class="why">If we ever read from it directly, we must know this. Their IT or the vendor will know.</div><div class="ans"></div></li>
+  <li><span class="n">2.4</span><span class="qt">Can it export or save reports to a folder by itself (automatic export)? In what format (PDF, Word, Excel, CSV)?</span><span class="top">MUST</span>
+    <div class="why">If yes, our program just picks up that folder — the simplest and safest way.</div><div class="ans"></div></li>
+  <li><span class="n">2.5</span><span class="qt">Does it have any connection for other software: API, HL7, FHIR, or a read-only database login?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">2.6</span><span class="qt">Who is the vendor's support contact, and does the hospital have a support contract?</span>
+    <div class="ans"></div></li>
+</ol>
+
+<h2>3. Scans (X-ray, CT, MRI)</h2>
+<ol class="q">
+  <li><span class="n">3.1</span><span class="qt">Is there a PACS (scan storage server)? Name and company?</span><span class="top">MUST</span>
+    <div class="ans"></div></li>
+  <li><span class="n">3.2</span><span class="qt">Which X-ray, CT and MRI machines are used (brand, model)? Digital X-ray or film?</span>
+    <div class="why">Film X-rays have no digital file; their scale for tumour size is lost.</div><div class="ans"></div></li>
+  <li><span class="n">3.3</span><span class="qt">In what format are scans saved: DICOM (.dcm), JPG, or other? Are they compressed?</span><span class="top">MUST</span>
+    <div class="why">The research needs original DICOM files; they keep the true size (pixel spacing) for measuring tumours in cm.</div>
+    <div class="guess"><b>Our guess:</b> DICOM. Not confirmed.</div><div class="ans"></div></li>
+  <li><span class="n">3.4</span><span class="qt">Can the PACS automatically copy (forward / "DICOM send") new chest scans to a folder or to another PC?</span>
+    <div class="why">If yes, the PACS feeds a folder and our program sends that folder.</div><div class="ans"></div></li>
+  <li><span class="n">3.5</span><span class="qt">About how many chest X-rays and chest CTs are done per day? How big is one CT study (MB/GB)?</span><span class="top">MUST</span>
+    <div class="why">3 days of CT can be several GB; this decides internet needs.</div><div class="ans"></div></li>
+</ol>
+
+<h2>4. Reports</h2>
+<ol class="q">
+  <li><span class="n">4.1</span><span class="qt">How are radiology reports written: typed in the hospital software, typed in Word, or handwritten and scanned?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">4.2</span><span class="qt">Where are reports saved, and in which format?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">4.3</span><span class="qt">Do clinical notes (treatment, chemo/radiotherapy, follow-up) exist as files too, or only on paper?</span>
+    <div class="why">Later research phases need treatment and outcome data.</div><div class="ans"></div></li>
+</ol>
+
+<h2>5. The files on the PC</h2>
+<ol class="q">
+  <li><span class="n">5.1</span><span class="qt">Which computer holds the files? Its name, and where it is.</span><span class="top">MUST</span>
+    <div class="ans"></div></li>
+  <li><span class="n">5.2</span><span class="qt">Exact folder path(s) (e.g. D:\Reports). Are files sorted into subfolders (by date, by patient)?</span><span class="top">MUST</span>
+    <div class="ans two"></div></li>
+  <li><span class="n">5.3</span><span class="qt">How are files named? Does the name include the patient ID (RC number), date, or scan type?</span><span class="top">MUST</span>
+    <div class="why">This is how we match a scan to its report and to the patient.</div><div class="ans"></div></li>
+  <li><span class="n">5.4</span><span class="qt">Are the files on that PC itself, or on a shared network drive / server?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">5.5</span><span class="qt">Are files ever edited, renamed, moved or deleted after they are first saved? Are old files cleared out?</span>
+    <div class="why">Corrected reports are sent again; files cleared too soon could be missed.</div><div class="ans"></div></li>
+  <li><span class="n">5.6</span><span class="qt">How much new data appears per day (number of files, total MB/GB)?</span>
+    <div class="ans"></div></li>
+</ol>
+
+<h2>6. Patient identity and privacy</h2>
+<ol class="q">
+  <li><span class="n">6.1</span><span class="qt">Confirm: the files do not contain patient names — including inside the scan files (DICOM "Patient Name" field) and report headers.</span><span class="top">MUST</span>
+    <div class="why">DICOM files often carry the name inside, even when the file name does not.</div>
+    <div class="guess"><b>Our guess:</b> no names in the files (as we were told). Please check one scan and one report together.</div><div class="ans"></div></li>
+  <li><span class="n">6.2</span><span class="qt">What other details are inside: phone, address, date of birth, national ID?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">6.3</span><span class="qt">Which ID links a scan, its report and the patient: RC number, accession number, other?</span><span class="top">MUST</span>
+    <div class="guess"><b>Our guess:</b> RC number (RC + digits), as used in our capture app.</div><div class="ans"></div></li>
+  <li><span class="n">6.4</span><span class="qt">Is the scan date and report date inside the files?</span>
+    <div class="why">The research compares baseline CT with later X-rays by date.</div><div class="ans"></div></li>
+</ol>
+
+<h2>7. The computer</h2>
+<ol class="q">
+  <li><span class="n">7.1</span><span class="qt">Windows version (7, 10, 11) and 32- or 64-bit?</span><span class="top">MUST</span>
+    <div class="why">Windows 7 or 32-bit changes how we build the program. Check with <i>Win + R → winver</i>.</div>
+    <div class="guess"><b>Our guess:</b> Windows 10 or 11, 64-bit.</div><div class="ans"></div></li>
+  <li><span class="n">7.2</span><span class="qt">Is it switched on all the time, or turned off at night / weekends?</span>
+    <div class="why">Decides what time of day it sends.</div><div class="ans"></div></li>
+  <li><span class="n">7.3</span><span class="qt">Can we get administrator rights to install it and add a scheduled task?</span><span class="top">MUST</span>
+    <div class="ans"></div></li>
+  <li><span class="n">7.4</span><span class="qt">Which antivirus is installed? Does it block new programs?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">7.5</span><span class="qt">Free disk space (needs room for one zip, possibly several GB)?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">7.6</span><span class="qt">Is there a UPS / are there frequent power cuts?</span>
+    <div class="ans"></div></li>
+</ol>
+
+<h2>8. Internet and network</h2>
+<ol class="q">
+  <li><span class="n">8.1</span><span class="qt">Does that PC have internet? Is it allowed to send data outside the hospital?</span><span class="top">MUST</span>
+    <div class="ans"></div></li>
+  <li><span class="n">8.2</span><span class="qt">Upload speed (run speedtest.net on that PC) and any monthly data limit?</span><span class="top">MUST</span>
+    <div class="ans"></div></li>
+  <li><span class="n">8.3</span><span class="qt">Is there a firewall or proxy? Are some websites blocked? Must the NSU server address be allowed first?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">8.4</span><span class="qt">Best time to send so the hospital network is not slowed (e.g. after 11 pm)?</span>
+    <div class="guess"><b>Our guess:</b> night, around 11 pm.</div><div class="ans"></div></li>
+</ol>
+
+<h2>9. Sending schedule and support</h2>
+<ol class="q">
+  <li><span class="n">9.1</span><span class="qt">Is every 3 days right? Should it ever send more often, or only on certain days?</span>
+    <div class="guess"><b>Our guess:</b> every 3 days, checked once a day so a missed day catches up.</div><div class="ans"></div></li>
+  <li><span class="n">9.2</span><span class="qt">Which file types should be sent, and which never (e.g. billing files)?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">9.3</span><span class="qt">From what date should it start (only new files from now, or older files too)?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">9.4</span><span class="qt">If it stops working, who at the hospital can we call? Is remote access (AnyDesk, TeamViewer) allowed for us to fix it?</span>
+    <div class="ans"></div></li>
+  <li><span class="n">9.5</span><span class="qt">Does the hospital want a copy of what was sent, or a monthly summary?</span>
+    <div class="ans"></div></li>
+</ol>
+
+<h2>Things to see and collect during the visit</h2>
+<ul class="see">
+  <li>Sit at the actual PC. Note its name and Windows version (<i>winver</i>).</li>
+  <li>Photo of the folder(s) in File Explorer, showing subfolders and how files are named.</li>
+  <li>Open one scan file and one report: check for patient names, phone, address. Photo with any name covered.</li>
+  <li>With permission, one sample of each file type with all patient details removed or a test patient — to build and test with.</li>
+  <li>Photo of the hospital software's export screen, if it has one, and its "About" screen (name, version).</li>
+  <li>Photo of the PACS screen and its name/version, if allowed.</li>
+  <li>Run speedtest.net on that PC; write down upload and download speed.</li>
+  <li>Check free space on each drive (This PC in File Explorer).</li>
+  <li>Count how many files appeared in one recent day, and their total size (folder → Properties).</li>
+  <li>Check whether a browser on that PC can open the NSU server address we give you (tests internet and blocking).</li>
+  <li>Get the IT contact's phone and email; agree on a date to install and test.</li>
+  <li>Ask for any written IT policy or approval form for outside software.</li>
+</ul>
+
+<h2>For the NSU team before go-live (not for the hospital)</h2>
+<ul class="see">
+  <li>Decide where the always-on NSU server runs. The current test link (lab PC + free ngrok) is not enough for months of multi-GB uploads.</li>
+  <li>Make sure the server has disk space for the expected GB per month (from 3.5 and 5.6).</li>
+  <li>Decide how SSD files already received will be joined with the files that arrive automatically.</li>
+</ul>
+
+<p class="small" style="margin-top:6mm">Questions about this checklist: contact the NSU research team.</p>
+</body>
+</html>
