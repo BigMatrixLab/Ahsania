@@ -212,6 +212,11 @@ Using our variable keys as their field names keeps the mapping trivial. Hospital
 
 ## Server changes
 
+**Changed during planning (2026-11-17):**
+- The sync runs right after approval in a FastAPI background task, not as a job in the job queue. That queue only handles reading jobs and needs the separate worker process. A failed send stays on the record with **Try again** for the admin; there are no automatic retries.
+- The three hospital forms get their own **Import patient** page, reached from the home card, instead of heading the New capture list. New capture stays the photo flow.
+- The stand-in's conflict path is exercised by tests that edit the stand-in's file, not by special RC numbers.
+
 - **`capture/hospital/`**: a small interface (`list_patients`, `get_patient`, `update_patient`) with two versions.
   - `stub`: the stand-in hospital, about 30 made-up patients in a JSON file in the dev data folder. Some variables are filled and some are blank, so both paths show. Writes go to that file. A few RC numbers are set up to produce a conflict, so the conflict path can be tested.
   - `http`: the real client for the contract above.

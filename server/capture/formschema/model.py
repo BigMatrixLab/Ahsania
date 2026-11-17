@@ -110,6 +110,9 @@ class TemplateDef(_Strict):
     phase: Literal[1, 2, 3]
     kind: Literal["document", "film_photo", "dicom", "form"]  # a form is typed straight into the app, with no photo
     title: str
+    hospital: bool = False  # filled from the hospital system by RC number, and sent back on approval
+    repeats: bool = False  # a patient may have many of this form (one per visit), not just one
+    retired: bool = False  # kept so old records open; no new records
     fields: list[AnyField] = Field(min_length=1)
 
     @model_validator(mode="after")

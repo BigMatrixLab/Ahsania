@@ -72,6 +72,9 @@ def create_record(
     template = get_active(db, template_key)
     if template is None:
         raise UploadRejected(404, "Unknown form type")
+    definition = template_def(template)
+    if definition.retired:
+        raise UploadRejected(410, "This form is no longer used")
     existing = db.scalar(select(Record).where(Record.client_upload_id == client_upload_id))
     if existing is not None:
         if existing.created_by == user.id:
@@ -86,7 +89,7 @@ def create_record(
         _check_pages(settings, pages)
     elif pages:
         raise UploadRejected(422, "This form takes no photos")
-    elif _has_form(db, reg_no, template.key):
+    elif not definition.repeats and _has_form(db, reg_no, template.key):
         raise UploadRejected(409, "This patient already has this form")
 
     db.execute(pg_insert(Patient).values(reg_no=reg_no).on_conflict_do_nothing())
@@ -107,7 +110,7 @@ def create_record(
         db.add(RecordFile(record_id=record.id, kind="page", path=relative, sha256=digest, size=len(data), page_no=page_no))
     if is_form:
         visit = today()
-        record.field_values = {template_def(template).document_date_key: visit.isoformat()}
+        record.field_values = {definition.document_date_key: visit.isoformat()}
         record.document_date = visit
     elif fill_by_hand:
         record.extraction_status = ExtractionStatus.SKIPPED

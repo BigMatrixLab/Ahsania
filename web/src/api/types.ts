@@ -47,6 +47,12 @@ export interface TemplateDef {
   /** A `form` is typed straight into the app, with no photo. */
   kind: "document" | "film_photo" | "dicom" | "form";
   title: string;
+  /** Filled from the hospital system by RC number, and sent back on approval. */
+  hospital?: boolean;
+  /** A patient may have many of this form, one per visit. */
+  repeats?: boolean;
+  /** Old form: its records still open, but no new ones. */
+  retired?: boolean;
   fields: FieldDef[];
 }
 
