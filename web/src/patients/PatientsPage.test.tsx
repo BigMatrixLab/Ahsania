@@ -96,6 +96,6 @@ describe("PatientsPage", () => {
     patients = [];
     renderPage();
     expect(await screen.findByText("No patients yet")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "New patient" }).getAttribute("href")).toBe("/new-patient");
+    expect(screen.getByRole("link", { name: "Import patient" }).getAttribute("href")).toBe("/import-patient");
   });
 });

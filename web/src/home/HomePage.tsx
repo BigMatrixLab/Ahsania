@@ -50,7 +50,7 @@ function DoctorHome() {
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
-        <ActionCard to="/new-patient" icon={UserPlus} title="New patient" text="First-visit form" />
+        <ActionCard to="/import-patient" icon={UserPlus} title="Import patient" text="From the hospital system" />
         <ActionCard to="/capture" icon={Camera} title="New capture" text="Photo of a report or film" />
       </div>
       <nav aria-label="My records" className="flex flex-wrap gap-2 text-sm">

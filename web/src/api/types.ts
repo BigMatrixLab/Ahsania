@@ -150,6 +150,10 @@ export interface RecordDetail extends RecordSummary {
   template: TemplateOut;
   errors: FieldError[];
   duplicate_of: string[];
+  /** What the hospital system held when this record was imported (null: typed by hand), kept up to date with what was sent back. */
+  hospital_snapshot: Record<string, unknown> | null;
+  /** How sending back to the hospital went, after the admin approved. */
+  hospital_sync: HospitalSync | null;
 }
 
 /** One scan of a patient; a report and a film of one date count as one study. */
@@ -175,3 +179,27 @@ export interface PatientDetail extends PatientSummary {
   records: RecordSummary[];
 }
 
+
+/** One of the hospital system's patients, for the Import patient list. */
+export interface HospitalPatient {
+  rc: string;
+  /** This patient already has a record of the chosen form here. */
+  imported: boolean;
+}
+
+export interface HospitalConflict {
+  key: string;
+  hospital_value: unknown;
+  /** The value the admin approved. */
+  ours: unknown;
+  /** The value we imported from the hospital. */
+  imported: unknown;
+}
+
+export interface HospitalSync {
+  status: "sent" | "nothing_to_send" | "conflict" | "not_at_hospital" | "unavailable";
+  at: string;
+  sent: string[];
+  conflicts: HospitalConflict[];
+  error: string | null;
+}

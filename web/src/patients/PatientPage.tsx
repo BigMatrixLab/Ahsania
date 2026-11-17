@@ -49,7 +49,7 @@ export default function PatientPage() {
       {me.role === "doctor" && (
         <div className="flex flex-wrap gap-2">
           {!hasForm && (
-            <Link to={`/new-patient?patient=${encodeURIComponent(p.reg_no)}`} className={secondaryButton}>
+            <Link to={`/import-patient?patient=${encodeURIComponent(p.reg_no)}`} className={secondaryButton}>
               <UserPlus aria-hidden="true" className="size-4" />
               First-visit form
             </Link>

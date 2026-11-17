@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ApiError, api } from "./client";
-import type { Account, Me, PatientDetail, PatientSummary, RecordDetail, RecordSummary, TemplateOut } from "./types";
+import type { Account, HospitalPatient, Me, PatientDetail, PatientSummary, RecordDetail, RecordSummary, TemplateOut } from "./types";
 
 export function useMe() {
   return useQuery({
@@ -57,4 +57,13 @@ export function usePatient(regNo: string) {
 
 export function useAccounts(enabled: boolean) {
   return useQuery({ queryKey: ["accounts"], queryFn: () => api<Account[]>("/admin/users"), enabled });
+}
+
+/** The hospital system's patients for one form; no retries, so "hospital down" shows at once. */
+export function useHospitalPatients(form: string) {
+  return useQuery({
+    queryKey: ["hospital-patients", form],
+    queryFn: () => api<HospitalPatient[]>(`/hospital/patients?form=${encodeURIComponent(form)}`),
+    retry: false,
+  });
 }

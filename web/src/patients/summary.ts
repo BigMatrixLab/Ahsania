@@ -1,6 +1,6 @@
 import type { PatientSummary } from "../api/types";
 
-export const NEW_PATIENT_FORM = "new_patient_lung";
+export const NEW_PATIENT_FORM = "import_patient";
 
 /** How far the patient is towards a CT/MRI and X-ray pair, in words that say what is still needed. */
 export function pairStatus(patient: PatientSummary): { label: string; done: boolean } {

@@ -14,7 +14,7 @@ export function TemplateStep({ onDone, onBack }: Props) {
   const templates = useTemplates();
   if (templates.isPending) return <ListSkeleton />;
   if (templates.isError) return <Notice tone="error">{templates.error.message}</Notice>;
-  const photographable = templates.data.filter((t) => t.kind === "document" || t.kind === "film_photo");
+  const photographable = templates.data.filter((t) => (t.kind === "document" || t.kind === "film_photo") && !t.definition.retired);
   const open = photographable.filter((t) => !t.locked).sort((a, b) => Number(b.kind === "document") - Number(a.kind === "document"));
   const locked = photographable.filter((t) => t.locked);
   return (

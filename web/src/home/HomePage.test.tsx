@@ -133,7 +133,7 @@ describe("HomePage panels", () => {
 
     renderHome();
 
-    expect((await screen.findByRole("link", { name: /New patient/ })).getAttribute("href")).toBe("/new-patient");
+    expect((await screen.findByRole("link", { name: /Import patient/ })).getAttribute("href")).toBe("/import-patient");
     expect(screen.getByRole("link", { name: /New capture/ }).getAttribute("href")).toBe("/capture");
   });
 
@@ -164,6 +164,6 @@ describe("HomePage panels", () => {
     const titles = screen.getAllByText(/^Report /).map((el) => el.textContent);
     expect(titles).toEqual(["Report 1", "Report 3"]);
     expect(screen.queryByRole("link", { name: /New capture/ })).toBeNull();
-    expect(screen.queryByRole("link", { name: /New patient/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /Import patient/ })).toBeNull();
   });
 });

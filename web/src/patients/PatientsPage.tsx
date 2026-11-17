@@ -40,8 +40,8 @@ export default function PatientsPage() {
           <p className="font-semibold text-slate-800">No patients yet</p>
           <p className="mt-1 text-sm text-slate-700">A patient appears here with their first form or capture.</p>
           {me.role === "doctor" && (
-            <Link to="/new-patient" className={`${primaryButton} mt-3`}>
-              New patient
+            <Link to="/import-patient" className={`${primaryButton} mt-3`}>
+              Import patient
             </Link>
           )}
         </div>
