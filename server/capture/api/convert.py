@@ -121,4 +121,6 @@ def record_detail(
         errors=errors,
         duplicate_of=list(duplicate_of),
         extraction_queued_at=extraction_queued_at,
+        hospital_snapshot=record.hospital_snapshot,
+        hospital_sync=record.hospital_sync,
     )

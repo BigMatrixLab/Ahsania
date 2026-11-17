@@ -50,3 +50,7 @@ def make_hospital(settings: Settings) -> Hospital:
 
         return HttpHospital(settings.hospital_url, settings.hospital_token, settings.hospital_timeout_s)
     raise ValueError(f"CAPTURE_HOSPITAL must be 'stub' or 'http', not {settings.hospital!r}")
+
+
+DOWN_MESSAGE = "Hospital system not reachable. Type the RC number and fill the form by hand."
+UNKNOWN_MESSAGE = "This RC number is not in the hospital system."

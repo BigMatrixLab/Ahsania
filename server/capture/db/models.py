@@ -131,6 +131,10 @@ class Record(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+    # The values the hospital system held when the record was imported (None: typed by hand), kept up to date
+    # with what was later sent back; and the last send-back result.
+    hospital_snapshot: Mapped[dict | None] = mapped_column(JSONB)
+    hospital_sync: Mapped[dict | None] = mapped_column(JSONB)
 
     template: Mapped[Template] = relationship(lazy="selectin")
     creator: Mapped[User] = relationship(lazy="selectin")

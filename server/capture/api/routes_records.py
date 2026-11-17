@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from capture.api.deps import current_user, get_db, get_settings, require_roles
+from capture.api.deps import current_user, get_db, get_hospital, get_settings, require_roles
 from capture.api.schemas import CreateMeta, ReadIdOut, RecordDetail, RecordSummary, TransitionIn, ValuesIn
 from capture.clock import today
 from capture.config import Settings
@@ -37,6 +37,7 @@ def create(
     user: User = Depends(require_roles(Role.DOCTOR)),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
+    hospital=Depends(get_hospital),
 ) -> RecordDetail:
     try:
         parsed = CreateMeta.model_validate_json(meta)
@@ -55,6 +56,8 @@ def create(
             client_upload_id=parsed.client_upload_id,
             fill_by_hand=parsed.fill_by_hand,
             pages=data,
+            from_hospital=parsed.from_hospital,
+            hospital=hospital,
         )
     except UploadRejected as e:
         db.rollback()

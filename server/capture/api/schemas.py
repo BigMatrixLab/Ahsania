@@ -83,6 +83,7 @@ class CreateMeta(BaseModel):
     template_key: str
     client_upload_id: uuid.UUID
     fill_by_hand: bool = False
+    from_hospital: bool = False  # fill from the hospital system (hospital forms only)
 
 
 class ReadIdOut(BaseModel):
@@ -140,6 +141,8 @@ class RecordDetail(RecordSummary):
     errors: list[dict[str, str]]
     duplicate_of: list[uuid.UUID] = []
     extraction_queued_at: datetime | None = None
+    hospital_snapshot: dict[str, Any] | None = None
+    hospital_sync: dict[str, Any] | None = None
 
 
 class StudyOut(BaseModel):
@@ -174,3 +177,8 @@ class TransitionIn(BaseModel):
     comment: str | None = None
     field_flags: dict[str, str] | None = None
 
+
+
+class HospitalPatientOut(BaseModel):
+    rc: str
+    imported: bool  # this patient already has a record of the asked form here

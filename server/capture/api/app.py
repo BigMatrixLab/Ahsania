@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
 
-from capture.api import routes_admin, routes_auth, routes_dataset, routes_files, routes_records, routes_templates
+from capture.api import routes_admin, routes_auth, routes_dataset, routes_files, routes_hospital, routes_records, routes_templates
 from capture.config import Settings
 from capture.db.base import make_sessionmaker
 from capture.extraction.read_id import IdReader
@@ -14,6 +14,7 @@ ROUTERS = (
     routes_records.router,
     routes_files.router,
     routes_dataset.router,
+    routes_hospital.router,
 )
 
 
