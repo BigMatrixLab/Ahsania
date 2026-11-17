@@ -1,7 +1,7 @@
 import re
 import uuid
 from datetime import date, datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints
 
@@ -182,3 +182,9 @@ class TransitionIn(BaseModel):
 class HospitalPatientOut(BaseModel):
     rc: str
     imported: bool  # this patient already has a record of the asked form here
+
+
+class ConflictIn(BaseModel):
+    row_version: int
+    key: str
+    keep: Literal["ours", "hospital"]

@@ -1,13 +1,13 @@
 import shutil
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, Response, UploadFile
 from pydantic import ValidationError
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from capture.api.deps import current_user, get_db, get_hospital, get_settings, require_roles
-from capture.api.schemas import CreateMeta, ReadIdOut, RecordDetail, RecordSummary, TransitionIn, ValuesIn
+from capture.api.schemas import ConflictIn, CreateMeta, ReadIdOut, RecordDetail, RecordSummary, TransitionIn, ValuesIn
 from capture.clock import today
 from capture.config import Settings
 from capture.db.models import ExtractionStatus, Record, RecordFile, ReviewEvent, Role, Status, Template, User
@@ -15,6 +15,7 @@ from capture.extraction.read_id import OcrUnavailable
 from capture.formschema.diff import diff_values
 from capture.formschema.store import template_def
 from capture.formschema.validate import document_date_of, validate_values
+from capture.hospital.sync import sync_record
 from capture.jobqueue import cancel_jobs
 from capture.jpeg import check_jpeg
 from capture.records.service import CONFLICT_MESSAGE, UploadRejected, create_record, detail_for, sent_to_admin, summaries
@@ -148,6 +149,8 @@ def update_values(
 def transition(
     record_id: uuid.UUID,
     body: TransitionIn,
+    request: Request,
+    background: BackgroundTasks,
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> RecordDetail:
@@ -172,6 +175,73 @@ def transition(
         record.extraction_status = ExtractionStatus.SKIPPED
     comment = (body.comment or "").strip() or None
     db.add(ReviewEvent(record_id=record.id, actor_id=user.id, action=body.action, comment=comment, field_flags=body.field_flags))
+    db.commit()
+    if body.action == Action.APPROVE and template_def(record.template).hospital:
+        background.add_task(_sync_after_approval, request.app, record.id, user.id)
+    return detail_for(db, record)
+
+
+def _sync_after_approval(app, record_id: uuid.UUID, actor_id: int) -> None:
+    """Runs after the admin's approval has been answered, so a slow hospital never holds up the click."""
+    with app.state.sessionmaker() as db:
+        record = db.get(Record, record_id, with_for_update=True)
+        if record is None or record.status != Status.APPROVED:
+            return
+        sync_record(db, app.state.hospital, record, actor_id)
+        db.commit()
+
+
+def _approved_hospital_record(db: Session, record_id: uuid.UUID) -> Record:
+    record = _load(db, record_id, for_update=True)
+    if record.status != Status.APPROVED or not template_def(record.template).hospital:
+        raise HTTPException(status_code=409, detail="Only approved hospital records are sent to the hospital")
+    return record
+
+
+@router.post("/records/{record_id}/hospital-sync", response_model=RecordDetail)
+def hospital_sync(
+    record_id: uuid.UUID,
+    user: User = Depends(require_roles(Role.ADMIN)),
+    db: Session = Depends(get_db),
+    hospital=Depends(get_hospital),
+) -> RecordDetail:
+    """Try sending again: only what the hospital still lacks or has wrong goes."""
+    record = _approved_hospital_record(db, record_id)
+    sync_record(db, hospital, record, user.id)
+    db.commit()
+    return detail_for(db, record)
+
+
+@router.post("/records/{record_id}/hospital-conflict", response_model=RecordDetail)
+def hospital_conflict(
+    record_id: uuid.UUID,
+    body: ConflictIn,
+    user: User = Depends(require_roles(Role.ADMIN)),
+    db: Session = Depends(get_db),
+    hospital=Depends(get_hospital),
+) -> RecordDetail:
+    """Settle one value the hospital changed after we imported it: keep the hospital's, or send ours over it."""
+    record = _approved_hospital_record(db, record_id)
+    if body.row_version != record.row_version:
+        raise HTTPException(status_code=409, detail=CONFLICT_MESSAGE)
+    sync = dict(record.hospital_sync or {})
+    conflict = next((c for c in sync.get("conflicts", []) if c["key"] == body.key), None)
+    if conflict is None:
+        raise HTTPException(status_code=404, detail="No such conflict")
+    record.hospital_snapshot = {**(record.hospital_snapshot or {}), body.key: conflict["hospital_value"]}
+    if body.keep == "hospital":
+        values = {**record.field_values, body.key: conflict["hospital_value"]}
+        changes = diff_values(record.field_values, values)
+        record.field_values = values
+        record.document_date = document_date_of(template_def(record.template), values)
+        sync["conflicts"] = [c for c in sync["conflicts"] if c["key"] != body.key]
+        if not sync["conflicts"]:
+            sync["status"] = "sent"
+        record.hospital_sync = sync
+        record.row_version += 1
+        db.add(ReviewEvent(record_id=record.id, actor_id=user.id, action="edit", comment="kept the hospital's value", field_changes=changes))
+    else:
+        sync_record(db, hospital, record, user.id)
     db.commit()
     return detail_for(db, record)
 
