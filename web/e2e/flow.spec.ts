@@ -130,22 +130,26 @@ test("the doctor fills a second record by hand without waiting", async () => {
   await expect(page.getByTestId("record-status")).toHaveText("Waiting for admin");
 });
 
-test("the doctor records a new patient with no photo, and leaving the page loses nothing", async () => {
+let hospitalRecord = "";
+
+test("the doctor types an RC the hospital lacks, and leaving the page loses nothing", async () => {
   await page.goto("/");
-  await page.getByRole("link", { name: /New patient/ }).click();
+  await page.getByRole("link", { name: /Import patient/ }).click();
+  await page.getByRole("button", { name: "Not in the list? Type the RC number" }).click();
   await page.getByLabel("Patient ID (RC…)").fill("RC900");
-  await page.getByRole("button", { name: "Start first-visit form" }).click();
+  await page.getByRole("button", { name: "Start form" }).click();
   await expect(page).toHaveURL(/\/records\/[0-9a-f-]{36}$/);
   newPatientRecord = page.url().split("/").pop()!;
-  await expect(page.getByRole("heading", { name: "New patient (lung cancer)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Import patient" })).toBeVisible();
   await expect(page.getByRole("img", { name: /Page/ })).toHaveCount(0);
+  await expect(page.getByText("From hospital")).toHaveCount(0);
 
   // Type and leave at once: the answer goes with the doctor.
-  await page.getByLabel(/^Age/).fill("62");
+  await page.getByLabel(/^Age at diagnosis/).fill("62");
   await page.getByRole("link", { name: "Home" }).click();
   await expect(page.getByRole("heading", { name: "My drafts" })).toBeVisible();
   await page.goto(`/records/${newPatientRecord}`);
-  await expect(page.getByLabel(/^Age/)).toHaveValue("62");
+  await expect(page.getByLabel(/^Age at diagnosis/)).toHaveValue("62");
 
   // Sending too early says what is missing and opens the way to it.
   await page.getByRole("button", { name: "Approve and send to admin" }).click();
@@ -159,12 +163,36 @@ test("the doctor records a new patient with no photo, and leaving the page loses
   await pick("1");
   await page.getByRole("button", { name: "Approve and send to admin" }).click();
   await expect(page.getByTestId("record-status")).toHaveText("Waiting for admin");
+  await logout();
+});
 
-  // A mistyped ID cannot make a second first-visit form.
-  await page.goto("/new-patient");
-  await page.getByLabel("Patient ID (RC…)").fill("rc900");
-  await page.getByRole("button", { name: "Start first-visit form" }).click();
-  await expect(page.getByRole("link", { name: "Open RC900" })).toBeVisible();
+test("the doctor imports a patient from the hospital and corrects one value", async () => {
+  await login("dr.test", DOCTOR_PASSWORD);
+  await page.getByRole("link", { name: /Import patient/ }).click();
+  await page.getByLabel("Search RC number").fill("500001");
+  await page.getByRole("button", { name: /RC500001/ }).click();
+  await expect(page).toHaveURL(/\/records\/[0-9a-f-]{36}$/);
+  hospitalRecord = page.url().split("/").pop()!;
+  await expect(page.getByRole("heading", { name: "Import patient" })).toBeVisible();
+  await expect(page.getByText("From hospital").first()).toBeVisible();
+
+  // The hospital says 36; the doctor knows better and is told what will happen.
+  await expect(page.getByLabel(/^Age at diagnosis/)).toHaveValue("36");
+  await page.getByLabel(/^Age at diagnosis/).fill("37");
+  await expect(page.getByText("Hospital has 36. If you and an admin approve, the hospital's value will be changed to 37.")).toBeVisible();
+
+  // Approving lists the change to the hospital's value before anything is sent.
+  await page.getByRole("button", { name: "Approve and send to admin" }).click();
+  await expect(page.getByText("Age at diagnosis: 36 → 37")).toBeVisible();
+  await page.getByRole("button", { name: "Yes, send to admin" }).click();
+  await expect(page.getByTestId("record-status")).toHaveText("Waiting for admin");
+
+  // Importing the same patient again points to the one already here.
+  await page.goto("/import-patient");
+  await page.getByLabel("Search RC number").fill("500001");
+  await expect(page.getByRole("button", { name: /RC500001/ })).toContainText("imported");
+  await page.getByRole("button", { name: /RC500001/ }).click();
+  await expect(page.getByRole("link", { name: "Open RC500001" })).toBeVisible();
   await logout();
 });
 
@@ -195,13 +223,24 @@ test("the admin sends the first record back; the doctor fixes it and approves ag
   await logout();
 });
 
-test("the admin approves the records, sees the patients, and downloads the dataset", async () => {
+test("the admin approves the records, the hospital gets its values, and the dataset downloads", async () => {
   await login("admin");
   for (const id of [aiRecord, handRecord, newPatientRecord]) {
     await page.goto(`/records/${id}`);
     await page.getByRole("button", { name: "Approve", exact: true }).click();
     await expect(page.getByTestId("record-status")).toHaveText("Approved");
   }
+  // The typed-in patient is not in the hospital system, so nothing can go there.
+  await expect(page.getByText(/Not at hospital/)).toBeVisible();
+
+  // The imported patient: the admin sees the change to the hospital's value before approving.
+  await page.goto(`/records/${hospitalRecord}`);
+  await page.getByRole("button", { name: "Approve", exact: true }).click();
+  await expect(page.getByText("Age at diagnosis: 36 → 37")).toBeVisible();
+  await page.getByRole("button", { name: "Yes, approve" }).click();
+  await expect(page.getByTestId("record-status")).toHaveText("Approved");
+  await expect(page.getByText(/^Sent to hospital/)).toBeVisible();
+
   await page.getByRole("link", { name: "All records" }).click();
   await page.getByLabel("Show").selectOption("approved");
   await expect(page.getByRole("link", { name: /RC555/ })).toBeVisible();
@@ -213,16 +252,18 @@ test("the admin approves the records, sees the patients, and downloads the datas
   await page.getByRole("link", { name: /^RC900/ }).click();
   await expect(page.getByRole("heading", { name: "RC900" })).toBeVisible();
   await expect(page.getByText("No approved scans yet")).toBeVisible();
-  await page.getByRole("link", { name: "New patient (lung cancer)" }).or(page.getByRole("link", { name: /RC900/ })).first().click();
-  await expect(page.getByRole("heading", { name: "New patient (lung cancer)" })).toBeVisible();
+  await page.getByRole("link", { name: "Import patient" }).or(page.getByRole("link", { name: /RC900/ })).first().click();
+  await expect(page.getByRole("heading", { name: "Import patient" })).toBeVisible();
   await expect(page.getByText("30")).toBeVisible();
 
   await page.getByRole("link", { name: "Patients", exact: true }).click();
+  await page.getByLabel("Find a patient").fill("rc500001");
+  await expect(page.getByText(/^37 y · male · current smoker/)).toBeVisible();
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Download dataset" }).click()]);
   expect(download.suggestedFilename()).toMatch(/^export-\d{8}-\d{6}\.zip$/);
   const zip = readFileSync(await download.path());
   expect(zip.includes("manifest.json")).toBe(true);
-  expect(zip.includes("new_patient_lung.csv")).toBe(true);
+  expect(zip.includes("import_patient.csv")).toBe(true);
   await logout();
 });
 

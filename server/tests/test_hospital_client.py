@@ -147,3 +147,24 @@ def test_stub_file_defaults_to_the_storage_folder(tmp_path):
     hospital = make_hospital(Settings(storage_dir=tmp_path))
     hospital.list_patients()
     assert (tmp_path / "hospital-stub.json").exists()
+
+
+def test_stub_values_look_like_real_patients(tmp_path):
+    import yaml
+
+    from capture.hospital.stub import TEMPLATES_DIR
+
+    hospital = stub(tmp_path)
+    fields = {f["key"]: f for f in yaml.safe_load((TEMPLATES_DIR / "import_patient.yaml").read_text(encoding="utf-8"))["fields"]}
+    for patient in hospital.list_patients():
+        values = hospital.get_values(patient.rc, "import_patient")
+        assert 35 <= values["age_years"] <= 85
+        assert values["sex"] in ("male", "female")
+        if "height_cm" in values:
+            assert 140 <= values["height_cm"] <= 190
+        if "weight_kg" in values:
+            assert 35 <= values["weight_kg"] <= 100
+        for key, value in values.items():
+            condition = fields.get(key, {}).get("show_if")
+            if condition:  # a follow-on answer only where its question says so
+                assert values.get(condition["key"]) in condition["values"], (patient.rc, key)

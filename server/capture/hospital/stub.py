@@ -36,12 +36,39 @@ def _made_up(field: dict, rng: random.Random) -> Any:
     return None  # free text stays empty: nothing made up should look like a real note
 
 
+# Believable ranges where the form's own limits are far wider than real patients.
+_REALISTIC = {
+    "age_years": lambda rng: rng.randint(35, 85),
+    "sex": lambda rng: rng.choice(["male", "male", "male", "female"]),
+    "height_cm": lambda rng: rng.randint(145, 185),
+    "weight_kg": lambda rng: rng.randint(38, 90),
+    "smoking_start_age": lambda rng: rng.randint(12, 25),
+    "sticks_per_day": lambda rng: rng.choice([5, 10, 15, 20, 30]),
+    "smoking_years": lambda rng: rng.randint(5, 45),
+    "symptom_weeks": lambda rng: rng.randint(2, 30),
+    "tumor_size_cm": lambda rng: round(rng.uniform(1.0, 9.0), 1),
+    "spo2_percent": lambda rng: rng.randint(88, 99),
+    "pulse_bpm": lambda rng: rng.randint(60, 110),
+    "bp_systolic": lambda rng: rng.randint(100, 160),
+    "bp_diastolic": lambda rng: rng.randint(60, 95),
+}
+_WORKED_OUT = {"bmi", "pack_years", "years_since_quit", "smoking_stop_age"}  # left for the doctor or the app
+
+
+def _shown(field: dict, values: dict) -> bool:
+    condition = field.get("show_if")
+    return condition is None or values.get(condition["key"]) in condition["values"]
+
+
 def _form_values(form: str, rng: random.Random, share: float) -> dict[str, Any]:
     definition = yaml.safe_load((TEMPLATES_DIR / f"{form}.yaml").read_text(encoding="utf-8"))
     values: dict[str, Any] = {}
     for f in definition["fields"]:
+        if f["key"] in _WORKED_OUT or not _shown(f, values):
+            continue
         if f.get("document_date") or f.get("required") or rng.random() < share:
-            value = _made_up(f, rng)
+            make = _REALISTIC.get(f["key"])
+            value = make(rng) if make else _made_up(f, rng)
             if value is not None:
                 values[f["key"]] = value
     return values

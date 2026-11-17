@@ -21,11 +21,18 @@ export function useTemplates() {
   return useQuery({ queryKey: ["templates"], queryFn: () => api<TemplateOut[]>("/templates"), staleTime: 300_000 });
 }
 
+/** Look again soon: the document is still being read, or an approved hospital record awaits the hospital's answer. */
+export function needsPolling(record: RecordDetail | undefined): boolean {
+  if (!record) return false;
+  if (record.status === "processing") return true;
+  return record.status === "approved" && Boolean(record.template.definition.hospital) && !record.hospital_sync;
+}
+
 export function useRecord(id: string) {
   return useQuery({
     queryKey: ["record", id],
     queryFn: () => api<RecordDetail>(`/records/${id}`),
-    refetchInterval: (query) => (query.state.data?.status === "processing" ? 1500 : false),
+    refetchInterval: (query) => (needsPolling(query.state.data) ? 1500 : false),
   });
 }
 

@@ -15,7 +15,7 @@ Logins are `doctor` and `admin`; the password is in `.public-password`. Keep thi
 
 ## The story
 
-**1. A new patient comes in.** Log in as `doctor`, tap **New patient**, type `RC300001`. Open sections, tap a few answers. Pick **current** under Smoking and Pack-years appears. Show that answers save by themselves. Tap **Approve and send to admin** early: the form says what is still needed and takes you there.
+**1. A patient comes in.** Log in as `doctor`, tap **Import patient** and pick `RC500001` from the hospital list (a stand-in hospital with 30 made-up patients until AMCGH IT connects the real one). Fields the hospital has show **From hospital**; the rest are empty for the doctor. Change the age and the form warns that the hospital's value will change once a doctor and an admin approve. Tap **Approve and send to admin**: the change is listed first. To show the empty form, tap **Not in the list? Type the RC number** and type `RC300001`; tapping **Approve and send to admin** early says what is still needed and takes you there.
 
 **2. A report arrives.** Tap **New capture**, **Radiology report**, photograph page 1, tap **Use this page**, then **Continue**. The patient ID is read off the photo. Tap **Fill it from the photo**.
 
@@ -45,4 +45,4 @@ Logins are `doctor` and `admin`; the password is in `.public-password`. Keep thi
 - **Is clinical data allowed now?** The MoU and proposal hold clinical data for Phase 3. The first-visit form is shown for their review; they decide when it may be used.
 - **Are these the right questions on the form?** This is what we want them to tell us. Fields are easy to change.
 - **Where does it run?** On this PC for today. The pilot needs a computer that stays on during working hours, ideally at NSU. No GPU is needed.
-- **DICOM and the hospital system?** Later, planned with hospital IT.
+- **DICOM and the hospital system?** Scans come by SSD for now. The hospital link is built against a stand-in; AMCGH IT gets `docs/hospital-api.md`, the three calls we need, to connect the real system.
