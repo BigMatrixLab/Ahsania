@@ -26,3 +26,8 @@ class Settings(BaseSettings):
     ocr_det_model: str = "PP-OCRv5_mobile_det"  # PaddleOCR text detection (CPU-friendly)
     ocr_rec_model: str = "en_PP-OCRv5_mobile_rec"  # PaddleOCR English recognition
     ocr_enable_mkldnn: bool = False  # PaddlePaddle 3.3's oneDNN path crashes on Windows CPUs
+    hospital: str = "stub"  # where patients come from: "stub" (made-up patients in a JSON file) or "http" (the real system)
+    hospital_url: str = ""  # the hospital API's base address, for "http"
+    hospital_token: str = ""  # bearer token the hospital gave us, for "http"
+    hospital_timeout_s: float = 10
+    hospital_stub_file: Path | None = None  # None: <storage_dir>/hospital-stub.json

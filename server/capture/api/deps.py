@@ -37,3 +37,8 @@ def require_roles(*roles: str):
         return user
 
     return dependency
+
+
+def get_hospital(request: Request):
+    """The hospital system this server talks to (capture.hospital.client.Hospital)."""
+    return request.app.state.hospital
