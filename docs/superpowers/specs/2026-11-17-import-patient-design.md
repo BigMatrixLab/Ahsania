@@ -1,7 +1,7 @@
 # Import Patient, Two-Way Hospital Sync and Windows App — Design
 
 **Date:** 2026-11-17
-**Status:** Draft for the user's review
+**Status:** Approved by the user 2026-11-17
 **Changes:** `2026-10-05-two-panels-design.md` and the forms in `templates/`. Where they disagree, this document wins.
 **Source of the variables:** `lung_ai_proposal_with_variables (2).pdf`, Appendix A.1 (102 clinical variables agreed with AMCGH's clinical team) and A.2 (what the app's forms already record).
 
@@ -48,6 +48,7 @@ The proposal (§5.3–5.4) promises a platform that pulls patient fields from th
 | Admins | Both the NSU team and hospital IT staff hold admin accounts. |
 | Variables the hospital lacks | Hospital IT adds those fields to their software. |
 | Desktop | Windows app (.exe), same screens and server. |
+| When values go to the hospital | On admin approval, for new values and corrections alike. |
 
 ## The three forms
 
@@ -249,7 +250,7 @@ Using our variable keys as their field names keeps the mapping trivial. Hospital
 - `bmi` and `pack_years` fill automatically but stay editable.
 - Nodal station is covered by `n_stage`; metastatic sites keep the current five yes/no fields plus `met_other`.
 - The hospital's current value is compared before writing, and conflicts never overwrite.
-- Sync happens on admin approval, for new values and corrections alike. This matches "approved by doctor and admin" and the proposal's "verified before entering the EMR".
+
 - Records entered by hand for an RC number the hospital does not know are not pushed.
 - Old forms are hidden, not deleted.
 - Desktop installer via Inno Setup.
