@@ -14,6 +14,8 @@ import { dateLabel, dateTimeLabel } from "../ui/time";
 import { DeleteButton } from "./DeleteButton";
 import { labelOfPath, sameValues } from "./fieldPaths";
 import { FormRenderer } from "./FormRenderer";
+import { hospitalChanges, withDerived } from "./hospital";
+import { ApproveChanges, HospitalSync } from "./HospitalSync";
 import { historyLines } from "./history";
 import { PageViewer } from "./PageViewer";
 import { availableActions, canDelete, canEdit, type UiAction } from "./permissions";
@@ -51,6 +53,7 @@ function RecordView({ record: r }: { record: RecordDetail }) {
   const [comment, setComment] = useState("");
   const [sources, setSources] = useState<SourceBox[]>([]);
   const [triedToSend, setTriedToSend] = useState(false);
+  const [confirming, setConfirming] = useState<"submit" | "approve" | null>(null);
 
   // Always the newest answers and the newest server copy, for saves that finish after a re-render.
   const latest = useRef(r);
@@ -74,6 +77,17 @@ function RecordView({ record: r }: { record: RecordDetail }) {
   const isForm = r.template.kind === "form";
   const fields = r.template.definition.fields;
   const stillNeeded = triedToSend ? r.errors : [];
+  const isHospital = Boolean(r.template.definition.hospital);
+  const changes = isHospital ? hospitalChanges(r.hospital_snapshot, editable ? values : r.values, fields) : null;
+
+  /** Approving a record that changes hospital values first lists those changes and asks again. */
+  function approveStep(action: "submit" | "approve") {
+    if (changes && changes.corrections.length > 0 && confirming !== action) setConfirming(action);
+    else {
+      setConfirming(null);
+      void run(action);
+    }
+  }
 
   function store(updated: RecordDetail) {
     latest.current = updated;
@@ -160,7 +174,7 @@ function RecordView({ record: r }: { record: RecordDetail }) {
     <FormRenderer
       fields={fields}
       values={values}
-      onChange={setValues}
+      onChange={isHospital ? (v) => setValues(withDerived(v)) : setValues}
       errors={errors}
       readOnly={!editable}
       flags={lastReturn?.field_flags ?? {}}
@@ -168,6 +182,7 @@ function RecordView({ record: r }: { record: RecordDetail }) {
       onFieldFocus={(_, ai) => setSources(ai?.sources ?? [])}
       showRequired={triedToSend}
       pages={r.files}
+      hospital={r.hospital_snapshot}
     />
   );
 
@@ -208,14 +223,24 @@ function RecordView({ record: r }: { record: RecordDetail }) {
           </div>
         </div>
       )}
-      <div className={`flex flex-wrap items-center gap-2 ${dialog ? "hidden" : ""}`}>
+      {confirming && changes && (
+        <ApproveChanges
+          corrections={changes.corrections}
+          newCount={changes.newCount}
+          confirmLabel={confirming === "submit" ? "Yes, send to admin" : "Yes, approve"}
+          busy={busy}
+          onConfirm={() => approveStep(confirming)}
+          onCancel={() => setConfirming(null)}
+        />
+      )}
+      <div className={`flex flex-wrap items-center gap-2 ${dialog || confirming ? "hidden" : ""}`}>
         {actions.includes("submit") && (
-          <button type="button" disabled={busy} onClick={() => void run("submit")} className={primaryButton}>
+          <button type="button" disabled={busy} onClick={() => approveStep("submit")} className={primaryButton}>
             Approve and send to admin
           </button>
         )}
         {actions.includes("approve") && (
-          <button type="button" disabled={busy} onClick={() => void run("approve")} className={primaryButton}>
+          <button type="button" disabled={busy} onClick={() => approveStep("approve")} className={primaryButton}>
             Approve
           </button>
         )}
@@ -284,6 +309,10 @@ function RecordView({ record: r }: { record: RecordDetail }) {
         </p>
       )}
       {isForm && editable && <p className="text-sm text-slate-700">Answers save by themselves, so you can stop and come back. Only the starred questions are needed before sending.</p>}
+      {isHospital && r.hospital_snapshot && editable && (
+        <p className="text-sm text-slate-700">Fields marked “From hospital” came from the hospital system. Fill in the rest; after an admin approves, the hospital gets them too.</p>
+      )}
+      {isHospital && r.status === "approved" && <HospitalSync record={r} canAct={me.role === "admin"} onDone={store} />}
       {conflict && (
         <Notice tone="error">
           {CONFLICT}

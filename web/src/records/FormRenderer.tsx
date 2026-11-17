@@ -6,6 +6,7 @@ import { card, inputClass, quietButton, secondaryButton } from "../ui/styles";
 import { dateLabel } from "../ui/time";
 import { AI_LABEL, aiMarker } from "./aiMarkers";
 import { getIn, humanize, isEmptyValue, pathToString, setIn, type PathPart } from "./fieldPaths";
+import { hospitalNote } from "./hospital";
 
 interface Props {
   fields: FieldDef[];
@@ -22,6 +23,8 @@ interface Props {
   showRequired?: boolean;
   /** The record's pages, for showing where a value was read. */
   pages?: FileOut[];
+  /** What the hospital system held when the record was imported: those fields get a tag, and a change a warning. */
+  hospital?: Record<string, unknown> | null;
 }
 
 interface Context {
@@ -33,11 +36,12 @@ interface Context {
   extraction: Extraction | null;
   showRequired: boolean;
   pages: FileOut[];
+  hospital: Record<string, unknown> | null;
   active: string | null;
   touch: (path: string, ai: AiField | null) => void;
 }
 
-export function FormRenderer({ fields, values, onChange, errors, readOnly, flags = {}, extraction = null, onFieldFocus, showRequired = false, pages = [] }: Props) {
+export function FormRenderer({ fields, values, onChange, errors, readOnly, flags = {}, extraction = null, onFieldFocus, showRequired = false, pages = [], hospital = null }: Props) {
   const [active, setActive] = useState<string | null>(null);
   const ctx: Context = {
     values,
@@ -48,6 +52,7 @@ export function FormRenderer({ fields, values, onChange, errors, readOnly, flags
     extraction,
     showRequired,
     pages,
+    hospital,
     active,
     touch: (path, ai) => {
       setActive(path);
@@ -68,7 +73,7 @@ export function FormRenderer({ fields, values, onChange, errors, readOnly, flags
     <div className="space-y-3">
       {groups.map((group, i) =>
         group.name ? (
-          <Section key={group.name} name={group.name} fields={group.fields} ctx={ctx} startOpen={i === 0} />
+          <Section key={group.name} name={group.name} fields={group.fields} ctx={ctx} startOpen={i === 0 && !allFromHospital(group.fields, ctx)} />
         ) : (
           <div key={i} className="space-y-4">
             {group.fields.map((field) => (
@@ -193,10 +198,30 @@ function Snippet({ ctx, path, ai }: { ctx: Context; path: string; ai: AiField | 
   return <SourceSnippet file={file} box={source.box} />;
 }
 
+/** Nothing left to check in this section: every field holds the hospital's own value. */
+function allFromHospital(fields: FieldDef[], ctx: Context): boolean {
+  return ctx.hospital !== null && fields.every((f) => hospitalNote(ctx.hospital, f.key, ctx.values[f.key])?.kind === "from");
+}
+
+function HospitalNote({ ctx, path }: { ctx: Context; path: string }) {
+  const note = hospitalNote(ctx.hospital, path, ctx.values[path]);
+  if (!note) return null;
+  if (note.kind === "from") {
+    return <p className="mt-1 inline-block rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800 ring-1 ring-sky-200">From hospital</p>;
+  }
+  return (
+    <p className="mt-1 flex gap-1 text-sm text-amber-800">
+      <AlertTriangle aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+      {note.text}
+    </p>
+  );
+}
+
 function Notes({ field, ctx, path, error, value }: { field: FieldDef; ctx: Context; path: string; error?: string; value?: unknown }) {
   const flag = ctx.flags[path];
   return (
     <>
+      <HospitalNote ctx={ctx} path={path} />
       {field.type === "date" && typeof value === "string" && value && <p className="mt-1 text-xs text-slate-600">{dateLabel(value)}</p>}
       {field.hint && <p className="mt-1 text-xs text-slate-600">{field.hint}</p>}
       {flag && <p className="mt-1 text-sm text-amber-800">Reviewer: {flag}</p>}

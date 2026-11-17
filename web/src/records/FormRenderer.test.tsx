@@ -282,3 +282,51 @@ describe("FormRenderer markers from reading the photo", () => {
     expect(focused).toContain("modality");
   });
 });
+
+function HospitalHarness({ start, hospital }: { start: Record<string, unknown>; hospital: Record<string, unknown> | null }) {
+  const [values, setValues] = useState<Record<string, unknown>>(start);
+  return <FormRenderer fields={INTAKE} values={values} onChange={setValues} errors={{}} readOnly={false} hospital={hospital} />;
+}
+
+describe("FormRenderer hospital values", () => {
+  const HOSPITAL = { age_years: 56, visit_date: "2026-10-01" };
+
+  it("shows From hospital on unchanged hospital values", () => {
+    render(<HospitalHarness start={HOSPITAL} hospital={HOSPITAL} />);
+    const age = screen.getByLabelText(/Age/).closest("[data-field]") as HTMLElement;
+    expect(within(age).getByText("From hospital")).toBeTruthy();
+  });
+
+  it("warns with the exact copy when a hospital value is changed", async () => {
+    render(<HospitalHarness start={HOSPITAL} hospital={HOSPITAL} />);
+    await userEvent.click(screen.getByRole("button", { name: /Patient/ }));
+    const input = screen.getByLabelText(/Age/);
+    await userEvent.clear(input);
+    await userEvent.type(input, "58");
+    expect(screen.getByText("Hospital has 56. If you and an admin approve, the hospital's value will be changed to 58.")).toBeTruthy();
+    expect(within(input.closest("[data-field]") as HTMLElement).queryByText("From hospital")).toBeNull();
+  });
+
+  it("warns that a cleared hospital value is kept by the hospital", async () => {
+    render(<HospitalHarness start={HOSPITAL} hospital={HOSPITAL} />);
+    await userEvent.click(screen.getByRole("button", { name: /Patient/ }));
+    await userEvent.clear(screen.getByLabelText(/Age/));
+    expect(screen.getByText("Hospital has 56. A blank is not sent; the hospital keeps its value.")).toBeTruthy();
+  });
+
+  it("no tag on fields the hospital lacked, nor on hand-typed records", () => {
+    render(<HospitalHarness start={{ ...HOSPITAL, smoking: "never" }} hospital={HOSPITAL} />);
+    expect(screen.getAllByText("From hospital")).toHaveLength(2);
+    cleanup();
+    render(<HospitalHarness start={HOSPITAL} hospital={null} />);
+    expect(screen.queryByText("From hospital")).toBeNull();
+  });
+
+  it("a section entirely from the hospital starts closed", () => {
+    render(<HospitalHarness start={HOSPITAL} hospital={HOSPITAL} />);
+    expect(screen.getByRole("button", { name: /Patient/ }).getAttribute("aria-expanded")).toBe("false");
+    cleanup();
+    render(<HospitalHarness start={{}} hospital={null} />);
+    expect(screen.getByRole("button", { name: /Patient/ }).getAttribute("aria-expanded")).toBe("true");
+  });
+});
