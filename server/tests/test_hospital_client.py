@@ -168,3 +168,14 @@ def test_stub_values_look_like_real_patients(tmp_path):
             condition = fields.get(key, {}).get("show_if")
             if condition:  # a follow-on answer only where its question says so
                 assert values.get(condition["key"]) in condition["values"], (patient.rc, key)
+
+
+@pytest.mark.parametrize("body", [{"not": "a list"}, [{"no_rc": 1}], "text"])
+def test_http_malformed_answer_is_unavailable(body):
+    with pytest.raises(HospitalUnavailable):
+        http(lambda request: httpx.Response(200, json=body)).list_patients()
+
+
+def test_http_malformed_update_answer_is_unavailable():
+    with pytest.raises(HospitalUnavailable):
+        http(lambda request: httpx.Response(200, json=["no"])).update("RC1", "import_patient", {"a": 1}, {})

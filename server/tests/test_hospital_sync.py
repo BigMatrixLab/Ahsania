@@ -174,3 +174,18 @@ def test_each_send_is_in_the_history(team, stub):
     done = approve(team, submit(team, save(team, record, age_years=record["values"]["age_years"] + 1)))
     assert done["events"][-1]["action"] == "sync"
     assert done["events"][-1]["comment"].startswith("sent")
+
+
+class Broken(Down):
+    def update(self, rc, form, set_values, expect):
+        raise ValueError("something nobody expected")
+
+
+def test_an_unexpected_failure_on_send_is_recorded_not_lost(app, team, stub):
+    record = imported(team)
+    real = app.state.hospital
+    app.state.hospital = Broken()
+    done = approve(team, submit(team, save(team, record, age_years=record["values"]["age_years"] + 1)))
+    assert done["hospital_sync"]["status"] == "unavailable"
+    app.state.hospital = real
+    assert team.admin.post(f"/api/records/{done['id']}/hospital-sync").json()["hospital_sync"]["status"] == "sent"

@@ -90,3 +90,10 @@ describe("ApproveChanges", () => {
     expect(onConfirm).toHaveBeenCalled();
   });
 });
+
+describe("HospitalSync with no result", () => {
+  it("offers Try again to an admin when the send never reported back", () => {
+    render(<HospitalSync record={record(null)} canAct onDone={() => {}} />);
+    expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
+  });
+});

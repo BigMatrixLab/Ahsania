@@ -49,6 +49,8 @@ def sync_record(db: Session, hospital: Hospital, record: Record, actor_id: int |
             sync.update(status="unavailable", error=str(e)[:500])
         except NotAtHospital:
             sync.update(status="not_at_hospital")
+        except Exception as e:  # never lose the result: the admin sees it and can try again
+            sync.update(status="unavailable", error=f"{type(e).__name__}: {e}"[:500])
         else:
             snapshot = dict(record.hospital_snapshot or {})
             for key in result.applied:

@@ -31,11 +31,22 @@ class HttpHospital:
             raise HospitalUnavailable("hospital answered with something that is not JSON") from None
 
     def list_patients(self) -> list[HospitalPatient]:
-        return [HospitalPatient(row["rc"], row.get("updated_at")) for row in self._call("GET", "/patients")]
+        body = self._call("GET", "/patients")
+        try:
+            return [HospitalPatient(str(row["rc"]), row.get("updated_at")) for row in body]
+        except (KeyError, TypeError, AttributeError) as e:
+            raise HospitalUnavailable(f"hospital's patient list is not in the agreed shape: {e}") from None
 
     def get_values(self, rc: str, form: str) -> dict[str, Any]:
-        return dict(self._call("GET", f"/patients/{rc}", params={"form": form}).get("values") or {})
+        body = self._call("GET", f"/patients/{rc}", params={"form": form})
+        try:
+            return dict(body.get("values") or {})
+        except (TypeError, AttributeError, ValueError) as e:
+            raise HospitalUnavailable(f"hospital's patient answer is not in the agreed shape: {e}") from None
 
     def update(self, rc: str, form: str, set_values: dict[str, Any], expect: dict[str, Any]) -> UpdateResult:
         body = self._call("PATCH", f"/patients/{rc}", json={"form": form, "set": set_values, "expect": expect})
-        return UpdateResult(applied=list(body.get("applied", [])), conflicts=list(body.get("conflicts", [])))
+        try:
+            return UpdateResult(applied=list(body.get("applied", [])), conflicts=list(body.get("conflicts", [])))
+        except (TypeError, AttributeError) as e:
+            raise HospitalUnavailable(f"hospital's write answer is not in the agreed shape: {e}") from None

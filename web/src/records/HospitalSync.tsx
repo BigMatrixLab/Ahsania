@@ -65,7 +65,7 @@ export function HospitalSync({ record, canAct, onDone }: { record: RecordDetail;
           )}
         </div>
       ))}
-      {canAct && sync && (sync.status === "unavailable" || sync.status === "conflict") && (
+      {canAct && (!sync || sync.status === "unavailable" || sync.status === "conflict") && (
         <button type="button" disabled={busy} onClick={() => void post("hospital-sync")} className={quietButton}>
           Try again
         </button>
