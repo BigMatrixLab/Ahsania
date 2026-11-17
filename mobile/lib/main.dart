@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -23,12 +24,12 @@ class _ShellState extends State<Shell> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      // Android back goes back inside the web app; it only closes the app on the first page.
+      // Android back goes back inside the web app; it only closes the app on the first page. On Windows the window closes itself.
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         if (_web != null && await _web!.canGoBack()) {
           await _web!.goBack();
-        } else {
+        } else if (defaultTargetPlatform == TargetPlatform.android) {
           await SystemNavigator.pop();
         }
       },
