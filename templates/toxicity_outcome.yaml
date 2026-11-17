@@ -1,0 +1,30 @@
+# One follow-up of a patient: toxicity, response and outcome, imported from the hospital system by RC number
+# (proposal Appendix A.1, section 12). A patient has one of these per follow-up.
+# No name, phone, address, national ID or date of birth.
+key: toxicity_outcome
+version: 1
+phase: 1
+kind: form
+title: Toxicity & outcome
+hospital: true
+repeats: true
+fields:
+  - {key: followup_date, label: Date of follow-up, type: date, required: true, document_date: true, section: Toxicity}
+  - {key: toxicity, label: Treatment-related toxicity, type: boolean, section: Toxicity}
+  - {key: toxicity_type, label: Toxicity type, type: enum, section: Toxicity, options: [hematological, GI, pulmonary, skin, neurological, other], show_if: {key: toxicity, values: [true]}}
+  - {key: toxicity_type_other, label: Other toxicity, type: text, section: Toxicity, show_if: {key: toxicity_type, values: [other]}}
+  - {key: toxicity_grade, label: Grade (CTCAE), type: enum, section: Toxicity, options: ["1", "2", "3", "4", "5"], show_if: {key: toxicity, values: [true]}}
+  - {key: cxr_6weekly, label: 6-weekly chest X-ray during treatment, type: boolean, section: Toxicity}
+
+  - key: disease_status
+    label: Disease status
+    type: enum
+    section: Outcome
+    options: [no evidence of disease, stable disease, partial response, complete response, progressive disease]
+  - {key: progression, label: Recurrence or progression, type: boolean, section: Outcome}
+  - {key: progression_date, label: Date of progression, type: date, section: Outcome, show_if: {key: progression, values: [true]}}
+  - {key: progression_site, label: Site of progression, type: text, section: Outcome, show_if: {key: progression, values: [true]}}
+  - {key: pfs_months, label: Progression-free period, type: number, unit: months, min: 0, max: 600, section: Outcome}
+  - {key: vital_status, label: Vital status, type: enum, required: true, section: Outcome, options: [alive, dead, lost to follow-up]}
+  - {key: date_of_death, label: Date of death, type: date, section: Outcome, show_if: {key: vital_status, values: [dead]}}
+  - {key: cause_of_death, label: Cause of death, type: enum, section: Outcome, options: [lung cancer, treatment-related, other], show_if: {key: vital_status, values: [dead]}}

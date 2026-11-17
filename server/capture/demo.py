@@ -16,10 +16,10 @@ from capture.formschema.validate import document_date_of
 from capture.records.service import create_record
 
 GOLDEN = Path(__file__).resolve().parents[2] / "eval" / "golden"
-CT, XRAY, REPORT, FIRST_VISIT = "ct_mri_film_photo", "xray_film_photo", "radiology_report", "new_patient_lung"
+CT, XRAY, REPORT, FIRST_VISIT = "ct_mri_film_photo", "xray_film_photo", "radiology_report", "import_patient"
 
-_SMOKER = {"visit_date": "2025-01-28", "age_years": 58, "sex": "male", "residence": "rural area", "occupation": "farmer", "smoking_status": "current", "tobacco_type": "bidi", "pack_years": 35, "ecog": "1", "symptom_cough": True, "symptom_blood": True, "symptom_weeks": 10, "past_tb": True, "diagnosis_status": "confirmed by biopsy or cytology", "histology": "adenocarcinoma", "primary_site": "RUL", "stage_group": "IIIA", "treatment_intent": "curative", "plan_chemotherapy": True, "plan_radiotherapy": True}
-_NON_SMOKER = {"visit_date": "2026-04-05", "age_years": 64, "sex": "female", "residence": "rural area", "occupation": "homemaker", "smoking_status": "never", "biomass_fuel": True, "ecog": "0", "symptom_cough": True, "diagnosis_status": "suspected", "histology": "not yet known"}
+_SMOKER = {"visit_date": "2025-01-28", "age_years": 58, "sex": "male", "residence": "rural", "occupation": "farmer", "smoking_status": "current", "tobacco_type": "bidi", "pack_years": 35, "ecog": "1", "symptom_cough": True, "symptom_blood": True, "symptom_weeks": 10, "past_tb": True, "diagnosis_status": "confirmed by biopsy or cytology", "histology": "adenocarcinoma", "primary_site": "RUL", "stage_group": "IIIA", "treatment_intent": "curative", "plan_chemotherapy": True, "plan_radiotherapy": True}
+_NON_SMOKER = {"visit_date": "2026-04-05", "age_years": 64, "sex": "female", "residence": "rural", "occupation": "homemaker", "smoking_status": "never", "biomass_fuel": True, "ecog": "0", "symptom_cough": True, "diagnosis_status": "suspected", "histology": "not yet known"}
 _FORMER = {"visit_date": "2026-06-01", "age_years": 71, "sex": "male", "smoking_status": "former", "tobacco_type": "cigarette", "pack_years": 40, "years_since_quit": 6, "ecog": "2", "histology": "squamous cell carcinoma", "stage_group": "IVA"}
 
 # Patient ID -> (form, golden case or None, values for a form with no photo).

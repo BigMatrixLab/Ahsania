@@ -11,7 +11,7 @@ from capture.clock import today
 from capture.db.models import Job
 from constants import JPEG, TEMPLATES_DIR
 
-FORM = "new_patient_lung"
+FORM = "import_patient"
 FILLED = {"visit_date": "2026-10-01", "age_years": 62, "sex": "male", "smoking_status": "current", "ecog": "1"}
 
 
@@ -129,3 +129,87 @@ def test_the_form_asks_for_no_identifier():
     definition = yaml.safe_load((TEMPLATES_DIR / f"{FORM}.yaml").read_text(encoding="utf-8"))
     identifying = re.compile(r"name|phone|mobile|address|national|birth|\bnid\b", re.IGNORECASE)
     assert [f["key"] for f in definition["fields"] if identifying.search(f["key"]) or identifying.search(f.get("label", ""))] == []
+
+
+NEW_FIELDS = {
+    "pollution_source", "education",
+    "smoking_start_age", "smoking_years", "sticks_per_day", "smoking_stop_age", "smokeless_type",
+    "passive_smoke_years", "work_exposure_years", "biomass_years",
+    "family_first_degree", "past_asthma", "past_pneumonia", "past_other_lung",
+    "diagnosis_date", "symptom_fever", "symptom_other", "bmi",
+    "tumor_side", "tumor_location", "primary_lesion_count", "histology_grade", "biopsy_type",
+    "node_involved", "distant_mets", "met_other", "met_site_count",
+    "molecular_tested", "mol_egfr", "mol_alk", "mol_ros1", "mol_kras", "mol_braf", "mol_met", "mol_ret", "mol_ntrk", "mol_her2",
+    "pdl1_level", "pdl1_method", "molecular_method",
+}
+HOSPITAL_FORMS = ("import_patient", "treatment", "toxicity_outcome")
+
+
+def definition(key):
+    return yaml.safe_load((TEMPLATES_DIR / f"{key}.yaml").read_text(encoding="utf-8"))
+
+
+def fields_of(key):
+    return {f["key"]: f for f in definition(key)["fields"]}
+
+
+def test_import_patient_has_every_new_field():
+    assert len(NEW_FIELDS) == 40
+    assert NEW_FIELDS <= set(fields_of(FORM))
+
+
+def test_changed_options():
+    fields = fields_of(FORM)
+    assert fields["residence"]["options"] == ["urban", "rural", "semi-urban"]
+    assert (fields["smokeless_tobacco"]["type"], fields["smokeless_tobacco"]["options"]) == ("enum", ["never", "current", "former"])
+    assert {"M1c1", "M1c2"} <= set(fields["m_stage"]["options"])
+    assert "multiple" in fields["primary_site"]["options"]
+
+
+def test_met_fields_follow_distant_mets():
+    mets = [f for k, f in fields_of(FORM).items() if k.startswith("met_") and k not in ("met_other", "met_site_count")]
+    assert len(mets) == 5
+    assert all(f["show_if"] == {"key": "distant_mets", "values": [True]} for f in mets)
+
+
+def test_required_set():
+    assert {k for k, f in fields_of(FORM).items() if f.get("required")} == {"visit_date", "age_years", "sex", "smoking_status", "ecog"}
+
+
+def test_follow_up_forms_required():
+    assert {k for k, f in fields_of("treatment").items() if f.get("required")} == {"treatment_date", "treatment_intent"}
+    assert {k for k, f in fields_of("toxicity_outcome").items() if f.get("required")} == {"followup_date", "vital_status"}
+
+
+def test_hospital_forms_are_flagged():
+    flags = {k: (definition(k).get("hospital"), definition(k).get("repeats", False), definition(k)["phase"]) for k in HOSPITAL_FORMS}
+    assert flags == {"import_patient": (True, False, 1), "treatment": (True, True, 1), "toxicity_outcome": (True, True, 1)}
+
+
+def test_no_form_asks_for_an_identifier():
+    identifying = re.compile(r"name|phone|mobile|address|national|birth|\bnid\b", re.IGNORECASE)
+
+    def leaves(fields):
+        for f in fields:
+            yield f
+            yield from leaves(f.get("fields", []))
+
+    bad = [
+        (key, f["key"])
+        for key in HOSPITAL_FORMS
+        for f in leaves(definition(key)["fields"])
+        if identifying.search(f["key"]) or identifying.search(f.get("label", ""))
+    ]
+    assert bad == []
+
+
+def test_old_first_visit_form_is_retired(team, upload):
+    r = upload(team.doctor, template_key="new_patient_lung", reg_no="RC1", pages=())
+    assert r.status_code == 410
+
+
+def test_profile_ignores_treatment_records(team, approved):
+    approved({"treatment_date": "2026-10-02", "treatment_intent": "palliative"}, template_key="treatment", reg_no="RC1", pages=())
+    approved(FILLED, template_key=FORM, reg_no="RC1", pages=())
+    [patient] = team.admin.get("/api/patients").json()
+    assert patient["profile"]["age_years"] == 62

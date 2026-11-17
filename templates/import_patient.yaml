@@ -1,0 +1,274 @@
+# A new lung cancer patient, imported from the hospital system by RC number: what the hospital has fills in,
+# the doctor types the rest. The variables are the proposal's Appendix A.1, sections 1-10, merged with the old
+# first-visit form. Only five answers are required, so a doctor can save what is known and come back.
+# No name, phone, address, national ID or date of birth: the MoU forbids them.
+key: import_patient
+version: 1
+phase: 1
+kind: form
+title: Import patient
+hospital: true
+fields:
+  - {key: visit_date, label: Date of first visit, type: date, required: true, document_date: true, section: Patient and visit}
+  - {key: age_years, label: Age at diagnosis, type: number, unit: years, min: 0, max: 120, required: true, section: Patient and visit}
+  - {key: sex, label: Sex, type: enum, required: true, section: Patient and visit, options: [male, female, other]}
+  - {key: residence, label: Lives in, type: enum, section: Patient and visit, options: [urban, rural, semi-urban]}
+  - {key: pollution_source, label: Lives near, type: enum, section: Patient and visit, options: [industrial area, highway or major road, residential area, other]}
+  - key: occupation
+    label: Occupation
+    type: enum
+    section: Patient and visit
+    options: [farmer, garment or textile worker, construction or stone work, driver or transport, factory or chemical worker, homemaker, office or professional, business, retired, other]
+  - {key: education, label: Education, type: enum, section: Patient and visit, options: [no formal education, primary, secondary, higher secondary, graduate or above]}
+  - {key: referred_from, label: Referred by, type: enum, section: Patient and visit, options: [self, local doctor or clinic, chest physician, surgeon, another cancer centre, other]}
+
+  - {key: diagnosis_date, label: Date of diagnosis, type: date, section: Symptoms}
+  - {key: symptom_cough, label: Cough, type: boolean, section: Symptoms}
+  - {key: symptom_blood, label: Coughing blood, type: boolean, section: Symptoms}
+  - {key: symptom_chest_pain, label: Chest pain, type: boolean, section: Symptoms}
+  - {key: symptom_breathless, label: Breathlessness, type: boolean, section: Symptoms}
+  - {key: symptom_weight_loss, label: Weight loss, type: boolean, section: Symptoms}
+  - {key: symptom_fever, label: Fever, type: boolean, section: Symptoms}
+  - {key: symptom_hoarse, label: Hoarse voice, type: boolean, section: Symptoms}
+  - {key: symptom_swallowing, label: Trouble swallowing, type: boolean, section: Symptoms}
+  - {key: symptom_face_swelling, label: Face or neck swelling, type: boolean, section: Symptoms}
+  - {key: symptom_bone_pain, label: Bone pain, type: boolean, section: Symptoms}
+  - {key: symptom_neuro, label: "Headache, fits or weakness", type: boolean, section: Symptoms}
+  - {key: symptom_other, label: Other symptoms, type: text, section: Symptoms}
+  - {key: symptom_weeks, label: How long, type: number, unit: weeks, min: 0, max: 1000, section: Symptoms}
+  - key: weight_lost_kg
+    label: Weight lost in 6 months
+    type: number
+    unit: kg
+    min: 0
+    max: 100
+    section: Symptoms
+    show_if: {key: symptom_weight_loss, values: [true]}
+
+  - {key: smoking_status, label: Smoking, type: enum, required: true, section: Smoking and tobacco, options: [never, former, current, unknown]}
+  - key: tobacco_type
+    label: What they smoke
+    type: enum
+    section: Smoking and tobacco
+    options: [cigarette, bidi, both cigarette and bidi, cigar, pipe, hookah, other]
+    show_if: {key: smoking_status, values: [former, current]}
+  - key: smoking_start_age
+    label: Age started smoking
+    type: number
+    unit: years
+    min: 5
+    max: 100
+    section: Smoking and tobacco
+    show_if: {key: smoking_status, values: [former, current]}
+  - key: smoking_years
+    label: Years smoked
+    type: number
+    unit: years
+    min: 0
+    max: 100
+    section: Smoking and tobacco
+    show_if: {key: smoking_status, values: [former, current]}
+  - key: sticks_per_day
+    label: Cigarettes or bidis a day
+    type: number
+    min: 0
+    max: 200
+    section: Smoking and tobacco
+    show_if: {key: smoking_status, values: [former, current]}
+  - key: pack_years
+    label: Pack-years
+    type: number
+    min: 0
+    max: 300
+    hint: Sticks a day ÷ 20 × years smoked
+    section: Smoking and tobacco
+    show_if: {key: smoking_status, values: [former, current]}
+  - key: smoking_stop_age
+    label: Age stopped smoking
+    type: number
+    unit: years
+    min: 5
+    max: 120
+    section: Smoking and tobacco
+    show_if: {key: smoking_status, values: [former]}
+  - key: years_since_quit
+    label: Years since quitting
+    type: number
+    unit: years
+    min: 0
+    max: 100
+    section: Smoking and tobacco
+    show_if: {key: smoking_status, values: [former]}
+  - {key: smokeless_tobacco, label: "Chews tobacco (zarda, gul, jorda)", type: enum, section: Smoking and tobacco, options: [never, current, former]}
+  - key: smokeless_type
+    label: Type of smokeless tobacco
+    type: enum
+    section: Smoking and tobacco
+    options: [jarda, gul, sadapata, other]
+    show_if: {key: smokeless_tobacco, values: [current, former]}
+  - {key: passive_smoke, label: Lives or works with smokers, type: boolean, section: Smoking and tobacco}
+  - key: passive_smoke_years
+    label: Years with smokers
+    type: number
+    unit: years
+    min: 0
+    max: 100
+    section: Smoking and tobacco
+    show_if: {key: passive_smoke, values: [true]}
+
+  - {key: biomass_fuel, label: "Cooks with wood, dung or straw", type: boolean, section: Other exposures}
+  - key: biomass_years
+    label: Years cooking with wood, dung or straw
+    type: number
+    unit: years
+    min: 0
+    max: 100
+    section: Other exposures
+    show_if: {key: biomass_fuel, values: [true]}
+  - {key: arsenic_water, label: Arsenic in drinking water, type: boolean, section: Other exposures}
+  - key: work_exposure
+    label: Dust or fumes at work
+    type: enum
+    section: Other exposures
+    options: [none, dust, asbestos, silica or stone dust, textile dust, metal, diesel or vehicle fumes, chemicals or paint, other]
+  - key: work_exposure_years
+    label: Years of dust or fumes at work
+    type: number
+    unit: years
+    min: 0
+    max: 80
+    section: Other exposures
+    show_if: {key: work_exposure, values: [dust, asbestos, silica or stone dust, textile dust, metal, diesel or vehicle fumes, chemicals or paint, other]}
+
+  - {key: past_tb, label: Treated for TB before, type: boolean, section: Past history}
+  - {key: past_copd, label: COPD, type: boolean, section: Past history}
+  - {key: past_asthma, label: Asthma, type: boolean, section: Past history}
+  - {key: past_pneumonia, label: Pneumonia or COVID-19 pneumonia before, type: boolean, section: Past history}
+  - {key: past_other_lung, label: Other chronic lung disease, type: boolean, section: Past history}
+  - {key: past_diabetes, label: Diabetes, type: boolean, section: Past history}
+  - {key: past_hypertension, label: High blood pressure, type: boolean, section: Past history}
+  - {key: past_heart, label: Heart disease, type: boolean, section: Past history}
+  - {key: past_kidney, label: Kidney disease, type: boolean, section: Past history}
+  - {key: past_liver, label: Liver disease or hepatitis, type: boolean, section: Past history}
+  - {key: past_cancer, label: Another cancer before, type: boolean, section: Past history}
+  - key: past_cancer_site
+    label: Which cancer
+    type: text
+    section: Past history
+    show_if: {key: past_cancer, values: [true]}
+  - key: family_history
+    label: Cancer in the family
+    type: enum
+    section: Past history
+    options: [none, lung cancer, breast cancer, colorectal cancer, other cancer, not known]
+  - key: family_first_degree
+    label: Parent, sibling or child affected
+    type: boolean
+    section: Past history
+    show_if: {key: family_history, values: [lung cancer, breast cancer, colorectal cancer, other cancer]}
+  - {key: current_medicines, label: Current medicines, type: text, hint: Note any blood thinner before a biopsy, section: Past history}
+  - {key: allergies, label: Drug allergies, type: text, section: Past history}
+
+  - key: ecog
+    label: ECOG performance status
+    type: enum
+    required: true
+    hint: 0 fully active · 1 light work only · 2 up and about, no work · 3 in bed over half the day · 4 bedbound
+    section: Examination
+    options: ["0", "1", "2", "3", "4"]
+  - {key: weight_kg, label: Weight, type: number, unit: kg, min: 10, max: 300, section: Examination}
+  - {key: height_cm, label: Height, type: number, unit: cm, min: 50, max: 250, section: Examination}
+  - {key: bmi, label: BMI, type: number, unit: kg/m², min: 5, max: 80, hint: Filled from weight and height, section: Examination}
+  - {key: spo2_percent, label: SpO2, type: number, unit: "%", min: 50, max: 100, section: Examination}
+  - {key: pulse_bpm, label: Pulse, type: number, unit: per min, min: 20, max: 250, section: Examination}
+  - {key: bp_systolic, label: BP systolic, type: number, unit: mmHg, min: 50, max: 300, section: Examination}
+  - {key: bp_diastolic, label: BP diastolic, type: number, unit: mmHg, min: 20, max: 200, section: Examination}
+  - {key: exam_clubbing, label: Finger clubbing, type: boolean, section: Examination}
+  - {key: exam_neck_nodes, label: Enlarged neck nodes, type: boolean, section: Examination}
+  - {key: exam_effusion, label: Signs of pleural effusion, type: boolean, section: Examination}
+  - {key: exam_svc, label: Signs of SVC obstruction, type: boolean, section: Examination}
+  - {key: exam_notes, label: Other findings, type: text, section: Examination}
+
+  - {key: diagnosis_status, label: Diagnosis, type: enum, section: Diagnosis and stage, options: [suspected, confirmed by biopsy or cytology]}
+  - {key: histology, label: Histology, type: enum, section: Diagnosis and stage, options: [adenocarcinoma, squamous cell carcinoma, small cell carcinoma, large cell carcinoma, NSCLC-NOS, other, not yet known]}
+  - {key: histology_grade, label: Grade, type: enum, section: Diagnosis and stage, options: [well differentiated, moderately differentiated, poorly differentiated, not applicable]}
+  - {key: biopsy_type, label: Biopsy specimen, type: enum, section: Diagnosis and stage, options: [bronchoscopy, CT-guided biopsy, surgical biopsy, cytology, other]}
+  - {key: tumor_side, label: Side, type: enum, section: Diagnosis and stage, options: [right lung, left lung, both]}
+  - {key: primary_site, label: Primary site, type: enum, section: Diagnosis and stage, options: [RUL, RML, RLL, LUL, LLL, main bronchus, multiple, other, not known]}
+  - {key: tumor_location, label: Location, type: enum, section: Diagnosis and stage, options: [central, peripheral]}
+  - {key: tumor_size_cm, label: Largest tumor size, type: number, unit: cm, min: 0.1, max: 30, section: Diagnosis and stage}
+  - {key: primary_lesion_count, label: Number of primary lesions, type: number, min: 1, max: 20, section: Diagnosis and stage}
+  - {key: t_stage, label: T stage, type: enum, section: Diagnosis and stage, options: [T1a, T1b, T1c, T2a, T2b, T3, T4, TX]}
+  - {key: n_stage, label: N stage, type: enum, section: Diagnosis and stage, options: [N0, N1, N2, N3, NX]}
+  - {key: m_stage, label: M stage, type: enum, section: Diagnosis and stage, options: [M0, M1a, M1b, M1c, M1c1, M1c2]}
+  - {key: stage_group, label: Stage, type: enum, section: Diagnosis and stage, options: [IA1, IA2, IA3, IB, IIA, IIB, IIIA, IIIB, IIIC, IVA, IVB, limited (small cell), extensive (small cell)]}
+  - {key: node_involved, label: Regional lymph nodes involved, type: boolean, section: Diagnosis and stage}
+  - {key: distant_mets, label: Distant metastasis, type: boolean, section: Diagnosis and stage}
+  - key: met_brain
+    label: Spread to brain
+    type: boolean
+    section: Diagnosis and stage
+    show_if: {key: distant_mets, values: [true]}
+  - key: met_bone
+    label: Spread to bone
+    type: boolean
+    section: Diagnosis and stage
+    show_if: {key: distant_mets, values: [true]}
+  - key: met_liver
+    label: Spread to liver
+    type: boolean
+    section: Diagnosis and stage
+    show_if: {key: distant_mets, values: [true]}
+  - key: met_adrenal
+    label: Spread to adrenal
+    type: boolean
+    section: Diagnosis and stage
+    show_if: {key: distant_mets, values: [true]}
+  - key: met_lung_pleura
+    label: Spread to other lung or pleura
+    type: boolean
+    section: Diagnosis and stage
+    show_if: {key: distant_mets, values: [true]}
+  - key: met_other
+    label: Other metastatic site
+    type: text
+    section: Diagnosis and stage
+    show_if: {key: distant_mets, values: [true]}
+  - key: met_site_count
+    label: Number of metastatic sites
+    type: number
+    min: 0
+    max: 20
+    section: Diagnosis and stage
+    show_if: {key: distant_mets, values: [true]}
+
+  - {key: molecular_tested, label: Molecular testing done, type: boolean, section: Molecular and biomarkers}
+  - {key: mol_egfr, label: EGFR mutation, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: mol_alk, label: ALK rearrangement, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: mol_ros1, label: ROS1 rearrangement, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: mol_kras, label: KRAS mutation, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: mol_braf, label: BRAF mutation, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: mol_met, label: MET alteration, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: mol_ret, label: RET rearrangement, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: mol_ntrk, label: NTRK fusion, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: mol_her2, label: HER2 alteration, type: enum, section: Molecular and biomarkers, options: [positive, negative, not tested, unknown], show_if: {key: molecular_tested, values: [true]}}
+  - {key: molecular_method, label: Molecular test method, type: enum, section: Molecular and biomarkers, options: [PCR, NGS, FISH, IHC, other], show_if: {key: molecular_tested, values: [true]}}
+  - {key: pdl1_level, label: PD-L1 expression, type: enum, section: Molecular and biomarkers, options: [<1%, 1-49%, ≥50%, unknown]}
+  - {key: pdl1_method, label: PD-L1 test, type: enum, section: Molecular and biomarkers, options: [IHC, other]}
+
+  - {key: treated_before, label: Cancer treatment before this visit, type: boolean, section: Treatment plan}
+  - key: treated_before_details
+    label: What treatment
+    type: text
+    section: Treatment plan
+    show_if: {key: treated_before, values: [true]}
+  - {key: treatment_intent, label: Treatment aim, type: enum, section: Treatment plan, options: [curative, palliative, not decided]}
+  - {key: plan_surgery, label: Plan surgery, type: boolean, section: Treatment plan}
+  - {key: plan_chemotherapy, label: Plan chemotherapy, type: boolean, section: Treatment plan}
+  - {key: plan_radiotherapy, label: Plan radiotherapy, type: boolean, section: Treatment plan}
+  - {key: plan_targeted, label: Plan targeted therapy, type: boolean, section: Treatment plan}
+  - {key: plan_immunotherapy, label: Plan immunotherapy, type: boolean, section: Treatment plan}
+  - {key: plan_supportive, label: Supportive care only, type: boolean, section: Treatment plan}
+  - {key: tumor_board, label: Discussed at tumor board, type: boolean, section: Treatment plan}
+  - {key: research_consent, label: Agreed to research use of this data, type: boolean, section: Treatment plan}
+  - {key: notes, label: Anything else, type: text, hint: No names or phone numbers, section: Treatment plan}

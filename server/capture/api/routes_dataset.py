@@ -22,6 +22,7 @@ from capture.records.service import summaries
 
 router = APIRouter(tags=["dataset"])
 audit = logging.getLogger("capture.audit")
+FIRST_VISIT_FORMS = ("import_patient", "new_patient_lung")  # the profile comes from the first-visit form
 PROFILE_FIELDS = ("age_years", "sex", "smoking_status", "pack_years", "ecog", "histology", "stage_group")
 
 
@@ -40,7 +41,7 @@ def _summary(reg_no: str, rows: list[Row]) -> PatientSummary:
     """Pairs count approved records only, so this always agrees with what the export holds."""
     approved = [r for r in rows if r.status == Status.APPROVED]
     pairing = pairing_of(StudyRow(r.key, r.field_values, r.document_date) for r in approved)
-    form = next((r for r in rows if r.kind == "form"), None)
+    form = next((r for r in rows if r.key in FIRST_VISIT_FORMS), None)
     profile = {k: form.field_values[k] for k in PROFILE_FIELDS if form.field_values.get(k) is not None} if form else None
     return PatientSummary(reg_no=reg_no, record_count=len(rows), approved_count=len(approved), profile=profile, **asdict(pairing))
 

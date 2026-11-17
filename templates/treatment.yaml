@@ -1,0 +1,65 @@
+# One treatment update for a patient, imported from the hospital system by RC number (proposal Appendix A.1,
+# section 11). A patient has one of these per update. No name, phone, address, national ID or date of birth.
+key: treatment
+version: 1
+phase: 1
+kind: form
+title: Treatment
+hospital: true
+repeats: true
+fields:
+  - {key: treatment_date, label: Date, type: date, required: true, document_date: true, section: Treatment}
+  - {key: previous_treatment, label: Treated before, type: boolean, section: Treatment}
+  - {key: treatment_intent, label: Intent, type: enum, required: true, section: Treatment, options: [curative, palliative]}
+  - {key: mdt_planned, label: Planned at multidisciplinary meeting, type: boolean, section: Treatment}
+
+  - {key: surgery, label: Surgery, type: boolean, section: Surgery}
+  - {key: surgery_type, label: Type of surgery, type: enum, section: Surgery, options: [lobectomy, pneumonectomy, wedge resection, segmentectomy, other], show_if: {key: surgery, values: [true]}}
+  - {key: surgical_margin, label: Margin, type: enum, section: Surgery, options: [R0, R1, R2, unknown], show_if: {key: surgery, values: [true]}}
+
+  - {key: chemotherapy, label: Chemotherapy, type: boolean, section: Chemotherapy}
+  - {key: chemo_line, label: Line, type: enum, section: Chemotherapy, options: [1st, 2nd, 3rd, other], show_if: {key: chemotherapy, values: [true]}}
+  - key: chemo_regimen
+    label: Regimen
+    type: enum
+    section: Chemotherapy
+    options: [taxane + platinum, gemcitabine + platinum, pemetrexed + platinum, platinum + etoposide, other]
+    show_if: {key: chemotherapy, values: [true]}
+  - {key: chemo_regimen_other, label: Other regimen, type: text, section: Chemotherapy, show_if: {key: chemo_regimen, values: [other]}}
+  - {key: chemo_cycles, label: Number of cycles, type: number, min: 0, max: 100, section: Chemotherapy, show_if: {key: chemotherapy, values: [true]}}
+
+  - {key: radiotherapy, label: Radiotherapy, type: boolean, section: Radiotherapy}
+  - {key: rt_intent, label: RT intent, type: enum, section: Radiotherapy, options: [definitive, adjuvant, neoadjuvant, palliative], show_if: {key: radiotherapy, values: [true]}}
+  - {key: rt_technique, label: RT technique, type: enum, section: Radiotherapy, options: [3D-CRT, IMRT, VMAT, SBRT, other], show_if: {key: radiotherapy, values: [true]}}
+  - {key: rt_dose_gy, label: RT dose, type: number, unit: Gy, min: 0, max: 150, section: Radiotherapy, show_if: {key: radiotherapy, values: [true]}}
+  - {key: rt_fractions, label: Fractions, type: number, min: 0, max: 60, section: Radiotherapy, show_if: {key: radiotherapy, values: [true]}}
+  - {key: rt_start_date, label: RT from, type: date, section: Radiotherapy, show_if: {key: radiotherapy, values: [true]}}
+  - {key: rt_end_date, label: RT to, type: date, section: Radiotherapy, show_if: {key: radiotherapy, values: [true]}}
+  - {key: concurrent_chemort, label: Concurrent chemoradiotherapy, type: boolean, section: Radiotherapy}
+
+  - {key: immunotherapy, label: Immunotherapy, type: boolean, section: Immunotherapy and targeted therapy}
+  - key: immuno_agent
+    label: Immunotherapy drug
+    type: enum
+    section: Immunotherapy and targeted therapy
+    options: [pembrolizumab, nivolumab, durvalumab, atezolizumab, other]
+    show_if: {key: immunotherapy, values: [true]}
+  - {key: immuno_agent_other, label: Other immunotherapy drug, type: text, section: Immunotherapy and targeted therapy, show_if: {key: immuno_agent, values: [other]}}
+  - {key: targeted, label: Targeted therapy, type: boolean, section: Immunotherapy and targeted therapy}
+  - key: targeted_agent
+    label: Targeted drug
+    type: enum
+    section: Immunotherapy and targeted therapy
+    options: [osimertinib, gefitinib, alectinib, crizotinib, entrectinib, sotorasib, erlotinib, afatinib, adagrasib, trastuzumab deruxtecan, other]
+    show_if: {key: targeted, values: [true]}
+  - {key: targeted_agent_other, label: Other targeted drug, type: text, section: Immunotherapy and targeted therapy, show_if: {key: targeted_agent, values: [other]}}
+
+  - {key: treatment_completion, label: Completion, type: enum, section: Completion, options: [completed, interrupted, not completed]}
+  - {key: treatment_interrupted, label: Interrupted, type: boolean, section: Completion}
+  - key: interruption_reason
+    label: Reason
+    type: enum
+    section: Completion
+    options: [toxicity, financial constraints, disease progression, poor performance status, patient refusal, other]
+    show_if: {key: treatment_interrupted, values: [true]}
+  - {key: interruption_reason_other, label: Other reason, type: text, section: Completion, show_if: {key: interruption_reason, values: [other]}}

@@ -1,5 +1,6 @@
 key: outcome_followup
-version: 1
+version: 2
+retired: true
 phase: 3
 kind: document
 title: Outcome follow-up

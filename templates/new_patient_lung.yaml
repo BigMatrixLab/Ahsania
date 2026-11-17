@@ -1,7 +1,8 @@
 # What a doctor takes from a new lung cancer patient at the first visit. Only five answers are required, so a
 # doctor can save what is known and come back. No name, phone, address, national ID or date of birth: the MoU forbids them.
 key: new_patient_lung
-version: 1
+version: 2
+retired: true
 phase: 1
 kind: form
 title: New patient (lung cancer)
