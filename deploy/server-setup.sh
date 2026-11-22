@@ -122,6 +122,12 @@ server {
         expires 30d;
         add_header Cache-Control "public, immutable";
     }
+    location ~ \\.mjs\$ {  # the PDF reader worker: browsers need a JavaScript type
+        types {}
+        default_type application/javascript;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
     location / {
         try_files \$uri /index.html;
     }

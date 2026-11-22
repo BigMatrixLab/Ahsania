@@ -43,11 +43,10 @@ export function Layout({ children }: { children: ReactNode }) {
                 <span className={`${logoBadge} size-9 rounded-lg p-0.5`}>
                   <img src="/logo-amcgh.png" alt="Ahsania Mission Cancer & General Hospital" className="h-full w-auto" />
                 </span>
-                <span className={`${logoBadge} size-9 rounded-lg p-0.5`}>
-                  <img src="/logo-nsu.png" alt="North South University" className="h-full w-auto" />
-                </span>
-                <span className={`${logoBadge} h-9 rounded-lg px-1.5`}>
-                  <img src="/logo-bigmatrix.png" alt="Big-Matrix Lab" className="h-5 w-auto" />
+                <span className={`${logoBadge} h-9 grid-flow-col gap-2 rounded-lg px-2`}>
+                  <img src="/logo-bigmatrix-lab.png" alt="Big-Matrix Lab" className="h-5 w-auto" />
+                  <span aria-hidden="true" className="h-6 w-px bg-slate-300" />
+                  <img src="/logo-nsu.png" alt="North South University" className="h-7 w-auto" />
                 </span>
               </span>
               <span className="hidden font-semibold sm:inline">AMCGH Capture</span>
