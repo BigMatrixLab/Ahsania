@@ -53,6 +53,11 @@ export async function preparePage(bitmap: ImageBitmap, rotation: Rotation, crop:
   const t = pageTransform(bitmap.width, bitmap.height, rotation, area, scale);
   ctx.setTransform(t.a, t.b, t.c, t.d, t.e, t.f);
   ctx.drawImage(bitmap, 0, 0);
-  return { blob: await toJpeg(out, 0.92), width, height, blur: blurScore(out) };
+  return encodePage(out);
+}
+
+/** Encode a finished page canvas as the working copy that is uploaded. */
+export async function encodePage(source: HTMLCanvasElement): Promise<PreparedPage> {
+  return { blob: await toJpeg(source, 0.92), width: source.width, height: source.height, blur: blurScore(source) };
 }
 

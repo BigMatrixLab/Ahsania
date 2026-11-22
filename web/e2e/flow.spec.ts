@@ -5,6 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
 const PASSWORD = "demo-pass-123";
 const DOCTOR_PASSWORD = "dr-test-pass-1";
 const REPORT = fileURLToPath(new URL("./fixtures/report.jpg", import.meta.url));
+const REPORT_PDF = fileURLToPath(new URL("./fixtures/report.pdf", import.meta.url));
 
 test.describe.configure({ mode: "serial" });
 
@@ -289,5 +290,24 @@ test("the doctor deletes a capture that never went to the admin", async () => {
   await page.getByRole("button", { name: "Yes, delete" }).click();
   await expect(page.getByText("Capture deleted.")).toBeVisible();
   await expect(page.getByRole("link", { name: /RC888/ })).toHaveCount(0);
+  await logout();
+});
+
+test("a PDF report adds all its pages at once, and the reader fills the form from it", async () => {
+  await login("dr.test", DOCTOR_PASSWORD);
+  await page.getByRole("link", { name: "New capture" }).click();
+  await page.getByRole("button", { name: /Radiology report/ }).click();
+  await expect(page.getByRole("button", { name: "Files or PDF" })).toBeVisible();
+  await page.getByTestId("files-input").setInputFiles(REPORT_PDF);
+  await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Page 2" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Reading the patient ID from the photos…")).toHaveCount(0, { timeout: 60_000 });
+  await page.getByLabel("Patient ID (RC…)").fill("RC777");
+  await page.getByRole("button", { name: "Fill it from the photo" }).click();
+  await expect(page.getByRole("link", { name: "Patient RC777" })).toBeVisible();
+  await expect(page.getByTestId("record-status")).toHaveText("Draft", { timeout: 120_000 });
+  await expect(page.getByRole("radio", { name: "CT", exact: true })).toBeChecked();
+  await expect(page.getByLabel("Study date")).toHaveValue("2026-09-01");
   await logout();
 });

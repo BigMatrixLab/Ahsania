@@ -12,3 +12,5 @@ export const dangerButton =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-red-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50";
 /** Teal header band used by the layout and the login page. */
 export const brandBand = "bg-gradient-to-br from-teal-700 to-cyan-700 text-white";
+/** A white backing so the partner logos stay readable on the teal band. */
+export const logoBadge = "inline-grid shrink-0 place-items-center rounded-2xl bg-white shadow-md shadow-teal-950/20";

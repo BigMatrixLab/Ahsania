@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { api, json } from "../api/client";
 import type { Me } from "../api/types";
-import { brandBand, card, inputClass, primaryButton } from "../ui/styles";
+import { brandBand, card, inputClass, logoBadge, primaryButton } from "../ui/styles";
 
 export default function LoginPage() {
   const queryClient = useQueryClient();
@@ -32,10 +32,16 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen">
       <div className={`${brandBand} px-4 pb-24 pt-14 text-center`}>
-        <div className="mx-auto mb-4 flex w-fit items-center gap-4">
-          <img src="/logo-amcgh.png" alt="Ahsania Mission Cancer & General Hospital" className="h-16 w-auto" />
-          <span aria-hidden="true" className="h-12 w-px bg-white/30" />
-          <img src="/logo-bigmatrix.png" alt="Big-Matrix Lab, Research & Development" className="h-12 w-auto" />
+        <div className="mx-auto mb-4 flex w-fit items-center gap-3">
+          <span className={`${logoBadge} size-16 p-1.5`}>
+            <img src="/logo-amcgh.png" alt="Ahsania Mission Cancer & General Hospital" className="h-full w-auto" />
+          </span>
+          <span className={`${logoBadge} size-16 p-1.5`}>
+            <img src="/logo-nsu.png" alt="North South University" className="h-full w-auto" />
+          </span>
+          <span className={`${logoBadge} h-16 px-3`}>
+            <img src="/logo-bigmatrix.png" alt="Big-Matrix Lab, Research & Development" className="h-9 w-auto" />
+          </span>
         </div>
         <h1 className="text-2xl font-bold">AMCGH Data Capture</h1>
         <p className="mt-1 text-sm text-white/90">Ahsania Mission Cancer &amp; General Hospital × NSU</p>

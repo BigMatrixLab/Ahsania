@@ -1,4 +1,4 @@
-import { Camera, UserPlus } from "lucide-react";
+import { FileUp, UserPlus } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { usePatient } from "../api/hooks";
 import type { Study } from "../api/types";
@@ -55,7 +55,7 @@ export default function PatientPage() {
             </Link>
           )}
           <Link to={`/capture?patient=${encodeURIComponent(p.reg_no)}`} className={secondaryButton}>
-            <Camera aria-hidden="true" className="size-4" />
+            <FileUp aria-hidden="true" className="size-4" />
             New capture
           </Link>
         </div>

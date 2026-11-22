@@ -1,4 +1,4 @@
-import { Camera, UserPlus, type LucideIcon } from "lucide-react";
+import { FileUp, UserPlus, type LucideIcon } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useRecords } from "../api/hooks";
 import { useCurrentUser } from "../auth/RequireAuth";
@@ -51,7 +51,7 @@ function DoctorHome() {
     <>
       <div className="grid grid-cols-2 gap-3">
         <ActionCard to="/import-patient" icon={UserPlus} title="Import patient" text="From the hospital system" />
-        <ActionCard to="/capture" icon={Camera} title="New capture" text="Photo of a report or film" />
+        <ActionCard to="/capture" icon={FileUp} title="New capture" text="Photo or PDF of a report or film" />
       </div>
       <nav aria-label="My records" className="flex flex-wrap gap-2 text-sm">
         <CountChip to="/records?status=draft&mine=1" label="Drafts" count={drafts.data?.length} />

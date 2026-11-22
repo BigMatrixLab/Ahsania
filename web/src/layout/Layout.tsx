@@ -5,7 +5,7 @@ import { api } from "../api/client";
 import { useCurrentUser } from "../auth/RequireAuth";
 import { ROLE_LABEL } from "../auth/roles";
 import { OutboxProvider, useOutbox } from "../outbox/OutboxContext";
-import { brandBand } from "../ui/styles";
+import { brandBand, logoBadge } from "../ui/styles";
 
 export function Layout({ children }: { children: ReactNode }) {
   const me = useCurrentUser();
@@ -39,9 +39,19 @@ export function Layout({ children }: { children: ReactNode }) {
         <header className={brandBand}>
           <div className="mx-auto max-w-6xl px-4 pb-9 pt-3">
             <div className="flex items-center gap-2.5">
-              <img src="/logo-amcgh.png" alt="" className="size-8 rounded-lg bg-white object-contain p-0.5" />
-              <span className="font-semibold">AMCGH Capture</span>
-              <button type="button" onClick={() => void logout()} className="ml-auto min-h-9 rounded-lg border border-white/40 px-3 text-sm font-medium transition-colors hover:bg-white/10">
+              <span className="flex shrink-0 items-center gap-1.5">
+                <span className={`${logoBadge} size-9 rounded-lg p-0.5`}>
+                  <img src="/logo-amcgh.png" alt="Ahsania Mission Cancer & General Hospital" className="h-full w-auto" />
+                </span>
+                <span className={`${logoBadge} size-9 rounded-lg p-0.5`}>
+                  <img src="/logo-nsu.png" alt="North South University" className="h-full w-auto" />
+                </span>
+                <span className={`${logoBadge} h-9 rounded-lg px-1.5`}>
+                  <img src="/logo-bigmatrix.png" alt="Big-Matrix Lab" className="h-5 w-auto" />
+                </span>
+              </span>
+              <span className="hidden font-semibold sm:inline">AMCGH Capture</span>
+              <button type="button" onClick={() => void logout()} className="ml-auto min-h-9 shrink-0 whitespace-nowrap rounded-lg border border-white/40 px-3 text-sm font-medium transition-colors hover:bg-white/10">
                 Log out
               </button>
             </div>
