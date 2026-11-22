@@ -5,7 +5,7 @@ import { api } from "../api/client";
 import { useCurrentUser } from "../auth/RequireAuth";
 import { ROLE_LABEL } from "../auth/roles";
 import { OutboxProvider, useOutbox } from "../outbox/OutboxContext";
-import { brandBand, logoBadge } from "../ui/styles";
+import { brandBand } from "../ui/styles";
 
 export function Layout({ children }: { children: ReactNode }) {
   const me = useCurrentUser();
@@ -39,15 +39,11 @@ export function Layout({ children }: { children: ReactNode }) {
         <header className={brandBand}>
           <div className="mx-auto max-w-6xl px-4 pb-9 pt-3">
             <div className="flex items-center gap-2.5">
-              <span className="flex shrink-0 items-center gap-1.5">
-                <span className={`${logoBadge} size-9 rounded-lg p-0.5`}>
-                  <img src="/logo-amcgh.png" alt="Ahsania Mission Cancer & General Hospital" className="h-full w-auto" />
-                </span>
-                <span className={`${logoBadge} h-9 grid-flow-col gap-2 rounded-lg px-2`}>
-                  <img src="/logo-bigmatrix-lab.png" alt="Big-Matrix Lab" className="h-5 w-auto" />
-                  <span aria-hidden="true" className="h-6 w-px bg-slate-300" />
-                  <img src="/logo-nsu.png" alt="North South University" className="h-7 w-auto" />
-                </span>
+              <span className="flex shrink-0 items-center gap-3">
+                <img src="/logo-amcgh.png" alt="Ahsania Mission Cancer & General Hospital" className="h-9 w-auto" />
+                <img src="/logo-bigmatrix-lab.png" alt="Big-Matrix Lab" className="h-6 w-auto" />
+                <span aria-hidden="true" className="h-7 w-px bg-white/50" />
+                <img src="/logo-nsu.png" alt="North South University" className="h-9 w-auto" />
               </span>
               <span className="hidden font-semibold sm:inline">AMCGH Capture</span>
               <button type="button" onClick={() => void logout()} className="ml-auto min-h-9 shrink-0 whitespace-nowrap rounded-lg border border-white/40 px-3 text-sm font-medium transition-colors hover:bg-white/10">
