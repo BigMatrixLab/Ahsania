@@ -42,14 +42,14 @@ export function HospitalSync({ record, canAct, onDone }: { record: RecordDetail;
   const status = sync ? STATUS[sync.status] : null;
   const Icon = status?.tone === "warn" ? AlertTriangle : status ? CheckCircle2 : Building2;
   return (
-    <section aria-label="Hospital system" className={`space-y-2 rounded-xl p-3 text-sm ${status?.tone === "warn" ? "bg-amber-50 text-amber-900" : "bg-sky-50 text-sky-900"}`}>
+    <section aria-label="Hospital system" className={`space-y-2 rounded-xl border p-3.5 text-sm ${status?.tone === "warn" ? "border-amber-300 bg-amber-50 text-amber-950" : "border-cyan-200 bg-cyan-50 text-cyan-950"}`}>
       <p className="flex items-center gap-2 font-medium">
         <Icon aria-hidden="true" className="size-4 shrink-0" />
         {status ? status.text : "Not sent to the hospital yet"}
         {sync && <span className="font-normal opacity-80">· {dateTimeLabel(sync.at)}</span>}
       </p>
       {sync?.conflicts.map((c) => (
-        <div key={c.key} className="flex flex-wrap items-center gap-2 rounded-lg bg-white/70 p-2">
+        <div key={c.key} className="flex flex-wrap items-center gap-2 rounded-lg bg-white/80 p-2">
           <span className="flex-1">
             {labelOf(fields, c.key)}: hospital now has {shown(c.hospital_value)}; we had {shown(c.imported)}; you approved {shown(c.ours)}
           </span>
@@ -92,7 +92,7 @@ export function ApproveChanges({
   onCancel: () => void;
 }): ReactNode {
   return (
-    <section aria-label="Changes to hospital values" className="space-y-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+    <section aria-label="Changes to hospital values" className="space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-sm text-amber-950">
       <p className="font-medium">This record changes {corrections.length === 1 ? "a value" : `${corrections.length} values`} the hospital already holds:</p>
       <ul className="list-disc space-y-0.5 pl-5">
         {corrections.map((c) => (

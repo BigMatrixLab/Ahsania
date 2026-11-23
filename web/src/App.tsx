@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router";
+import { EmptyState } from "./ui/EmptyState";
 import AccountsPage from "./admin/AccountsPage";
 import LoginPage from "./auth/LoginPage";
 import { RequireAuth } from "./auth/RequireAuth";
@@ -41,7 +42,7 @@ function AuthedRoutes() {
       <Route path="records/:id" element={<RecordPage />} />
       <Route path="records" element={<AllRecordsPage />} />
       <Route path="accounts" element={<AccountsPage />} />
-      <Route path="*" element={<p>Page not found.</p>} />
+      <Route path="*" element={<EmptyState title="Page not found">This page does not exist. Use the menu to go back to your work.</EmptyState>} />
     </Routes>
   );
 }

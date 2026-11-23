@@ -6,6 +6,7 @@ import { useCurrentUser } from "../auth/RequireAuth";
 import { useOutbox } from "../outbox/OutboxContext";
 import { enqueue, flushOutbox, type SendResult } from "../outbox/outbox";
 import type { OutboxMeta } from "../storage/idb";
+import { PageHeader } from "../ui/PageHeader";
 import { PatientStep } from "./PatientStep";
 import { PhotosStep } from "./PhotosStep";
 import { TemplateStep } from "./TemplateStep";
@@ -47,21 +48,25 @@ export default function CapturePage() {
   }
 
   return (
-    <div className="space-y-4">
-      <ol className="flex items-center gap-2 text-sm">
+    <div className="mx-auto max-w-2xl">
+      <PageHeader title="New capture" subtitle={template && step !== "template" ? template.title : "Photograph a report or film, and the form is filled in for you to check."} />
+      <ol aria-label="Progress" className="mb-6 grid grid-cols-3 gap-2">
         {STEPS.map((s, i) => {
           const at = STEPS.indexOf(step);
-          const tone = i < at ? "bg-teal-600 text-white" : i === at ? "bg-teal-700 text-white ring-4 ring-teal-100" : "bg-slate-200 text-slate-500";
+          const state = i < at ? "done" : i === at ? "current" : "todo";
           return (
-            <li key={s} aria-current={s === step ? "step" : undefined} className="flex flex-1 items-center gap-2">
-              <span className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${tone}`}>{i < at ? <Check aria-label="Done" className="size-4" /> : i + 1}</span>
-              <span className={s === step ? "font-semibold text-teal-800" : "text-slate-600"}>{STEP_LABEL[s]}</span>
-              {i < STEPS.length - 1 && <span className="hidden h-px flex-1 bg-slate-300 sm:block" />}
+            <li key={s} aria-current={s === step ? "step" : undefined} className="min-w-0">
+              <span className={`block h-1.5 rounded-full transition-colors ${state === "todo" ? "bg-ink-200" : "bg-brand-600"}`} />
+              <span className="mt-2 flex items-center gap-2">
+                <span className={`grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold ${state === "done" ? "bg-brand-600 text-white" : state === "current" ? "bg-brand-700 text-white ring-4 ring-brand-100" : "bg-ink-200 text-ink-600"}`}>
+                  {state === "done" ? <Check aria-label="Done" className="size-3.5" /> : i + 1}
+                </span>
+                <span className={`truncate text-sm ${state === "current" ? "font-semibold text-ink-900" : "text-ink-600"}`}>{STEP_LABEL[s]}</span>
+              </span>
             </li>
           );
         })}
       </ol>
-      {template && step !== "template" && <p className="rounded-xl bg-teal-50 px-3 py-2 text-sm font-medium text-teal-900">{template.title}</p>}
       {step === "template" && (
         <TemplateStep
           onBack={() => navigate("/")}

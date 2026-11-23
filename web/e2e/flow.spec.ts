@@ -242,7 +242,7 @@ test("the admin approves the records, the hospital gets its values, and the data
   await expect(page.getByText(/^Sent to hospital/)).toBeVisible();
 
   await page.getByRole("link", { name: "All records" }).click();
-  await page.getByLabel("Show").selectOption("approved");
+  await page.getByRole("button", { name: "Approved", exact: true }).click();
   await expect(page.getByRole("link", { name: /RC555/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /RC777/ })).toBeVisible();
 

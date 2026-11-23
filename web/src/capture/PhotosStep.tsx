@@ -64,23 +64,31 @@ export function PhotosStep({ pages, onChange, onBack, onNext }: Props) {
   const hasPages = pages.length > 0;
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-slate-800">Photos</h2>
-      {!hasPages && <p className="text-sm text-slate-700">Take a photo of each page. Fill the frame and avoid glare.</p>}
+      <h2 className="text-lg font-semibold text-ink-900">Photos</h2>
+      {!hasPages && (
+        <div className="rounded-xl border border-dashed border-ink-300 bg-white px-5 py-6 text-center">
+          <span aria-hidden="true" className="mx-auto grid size-12 place-items-center rounded-full bg-brand-50 text-brand-700">
+            <Camera className="size-6" />
+          </span>
+          <p className="mt-3 font-medium text-ink-900">Take a photo of each page</p>
+          <p className="mt-1 text-sm text-ink-700">Fill the frame, keep the page flat and avoid glare.</p>
+        </div>
+      )}
       {hasPages && (
         <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {pages.map((p, i) => (
-            <li key={p.id} className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <img src={p.url} alt={`Page ${i + 1}`} className="h-44 w-full bg-slate-100 object-contain" />
+            <li key={p.id} className="relative overflow-hidden rounded-xl border border-ink-200 bg-white">
+              <img src={p.url} alt={`Page ${i + 1}`} className="h-44 w-full bg-ink-100 object-contain" />
               <button
                 type="button"
                 aria-label={`Remove page ${i + 1}`}
                 onClick={() => remove(p.id)}
-                className="absolute right-1.5 top-1.5 grid size-10 place-items-center rounded-full bg-white/95 text-slate-800 shadow transition-colors hover:bg-red-50 hover:text-red-700"
+                className="absolute right-1.5 top-1.5 grid size-10 place-items-center rounded-full bg-white/95 text-ink-800 shadow-float transition-colors hover:bg-red-50 hover:text-red-700"
               >
                 <X aria-hidden="true" className="size-5" />
               </button>
-              <p className="px-3 py-2 text-sm font-medium text-slate-800">Page {i + 1}</p>
-              {isBlurry(p.blur) && <p className="px-3 pb-2 text-xs font-medium text-amber-800">Looks blurry. Retake?</p>}
+              <p className="px-3 py-2 text-sm font-medium text-ink-800">Page {i + 1}</p>
+              {isBlurry(p.blur) && <p className="mx-3 mb-2.5 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900">Looks blurry. Retake?</p>}
             </li>
           ))}
         </ol>
@@ -88,7 +96,7 @@ export function PhotosStep({ pages, onChange, onBack, onNext }: Props) {
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={(e) => void onFile(e)} className="hidden" data-testid="camera-input" />
       <input ref={galleryRef} type="file" accept="image/*" onChange={(e) => void onFile(e)} className="hidden" data-testid="gallery-input" />
       {error && <Notice tone="error">{error}</Notice>}
-      <div className="flex flex-wrap gap-2">
+      <div className="grid gap-2 sm:flex sm:flex-wrap">
         <button type="button" onClick={() => cameraRef.current?.click()} className={hasPages ? secondaryButton : primaryButton}>
           <Camera aria-hidden="true" className="size-5" />
           {hasPages ? "Take another photo" : "Take photo"}
@@ -98,7 +106,7 @@ export function PhotosStep({ pages, onChange, onBack, onNext }: Props) {
           Choose from gallery
         </button>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 border-t border-ink-200 pt-4">
         <button type="button" onClick={onBack} className={secondaryButton}>
           Back
         </button>

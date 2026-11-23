@@ -75,35 +75,38 @@ export function PatientStep({ pages, initialRegNo = "", onBack, onUpload }: Prop
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-4 sm:mx-0">
-      <h2 className="text-lg font-semibold text-slate-800">Patient ID</h2>
+    <div className="max-w-md space-y-5">
+      <div>
+        <h2 className="text-lg font-semibold text-ink-900">Patient ID</h2>
+        <p className="mt-0.5 text-sm text-ink-700">We read it from the photos. Check it matches the patient.</p>
+      </div>
       <div>
         <label className="block">
-          <span className="text-sm font-medium">Patient ID (RC…)</span>
+          <span className="text-sm font-medium text-ink-800">Patient ID (RC…)</span>
           <input
             value={regNo}
             onChange={(e) => setRegNo(e.target.value)}
             placeholder={reading ? "Reading from the photos…" : "RC12345"}
             autoComplete="off"
             autoCapitalize="characters"
-            className={`${inputClass} tabular-nums`}
+            className={`${inputClass} text-lg font-semibold tabular-nums`}
           />
         </label>
         <div className="mt-2 text-sm">
           {reading && (
-            <p role="status" className="flex items-center gap-1.5 text-slate-700">
+            <p role="status" className="flex items-center gap-1.5 text-ink-700">
               <Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
               Reading the patient ID from the photos…
             </p>
           )}
           {!reading && found && (
-            <p className="flex items-center gap-1.5 text-teal-800">
+            <p className="flex items-center gap-1.5 font-medium text-brand-800">
               <CheckCircle2 aria-hidden="true" className="size-4" />
               Read from the photo. Check it is right.
             </p>
           )}
           {!reading && !found && !regNo && (
-            <p className="flex items-center gap-1.5 text-amber-800">
+            <p className="flex items-center gap-1.5 font-medium text-amber-800">
               <AlertTriangle aria-hidden="true" className="size-4" />
               No patient ID found on the photos. Type it.
             </p>
@@ -123,7 +126,7 @@ export function PatientStep({ pages, initialRegNo = "", onBack, onUpload }: Prop
         </button>
       </div>
       {uploading && (
-        <p role="status" className="flex items-center gap-1.5 text-sm text-slate-700">
+        <p role="status" className="flex items-center gap-1.5 text-sm text-ink-700">
           <Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
           Uploading…
         </p>

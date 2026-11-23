@@ -27,13 +27,13 @@ export function DeleteButton({ recordId, onDeleted }: { recordId: string; onDele
 
   if (!asking) {
     return (
-      <button type="button" onClick={() => setAsking(true)} className="inline-flex min-h-11 items-center rounded-lg px-3 py-1.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50">
+      <button type="button" onClick={() => setAsking(true)} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 active:bg-red-100">
         Delete
       </button>
     );
   }
   return (
-    <span className="flex flex-wrap items-center gap-2 py-1 text-sm">
+    <span className="flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-sm">
       <span className="font-medium text-red-800">Delete this capture?</span>
       <button type="button" disabled={busy} onClick={() => void remove()} className={dangerButton}>
         Yes, delete

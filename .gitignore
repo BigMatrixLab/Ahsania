@@ -11,3 +11,4 @@ web/public/tesseract/
 web/test-results/
 web/playwright-report/
 .public-password
+/web/node_modules

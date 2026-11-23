@@ -7,9 +7,10 @@ import { useRecord } from "../api/hooks";
 import type { EventOut, RecordDetail, SourceBox } from "../api/types";
 import { useCurrentUser } from "../auth/RequireAuth";
 import { Notice } from "../ui/Notice";
+import { PageHeader } from "../ui/PageHeader";
 import { ListSkeleton } from "../ui/Skeleton";
 import { StatusBadge } from "../ui/StatusBadge";
-import { card, inputClass, primaryButton, quietButton, secondaryButton } from "../ui/styles";
+import { card, inputClass, primaryButton, quietButton, secondaryButton, sectionTitle } from "../ui/styles";
 import { dateLabel, dateTimeLabel } from "../ui/time";
 import { DeleteButton } from "./DeleteButton";
 import { labelOfPath, sameValues } from "./fieldPaths";
@@ -187,20 +188,20 @@ function RecordView({ record: r }: { record: RecordDetail }) {
   );
 
   const actionBar = (
-    <div ref={bar} className="sticky bottom-0 z-10 -mx-4 space-y-2 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur empty:hidden md:mx-0 md:rounded-2xl md:border md:shadow-sm">
+    <div ref={bar} className="sticky bottom-0 z-10 -mx-4 space-y-3 border-t border-ink-200 bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-bar backdrop-blur empty:hidden md:mx-0 md:rounded-xl md:border md:p-4 md:shadow-float">
       {editable && <SaveStatus state={saveState} dirty={!sameValues(values, r.values)} />}
       {message && (
-        <p role="status" className="text-sm font-medium text-slate-800">
+        <p role="status" className="text-sm font-medium text-ink-900">
           {message}
         </p>
       )}
       {stillNeeded.length > 0 && (
-        <p className="text-sm text-slate-800">
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">
           <span className="font-semibold">Still needed: </span>
           {stillNeeded.map((e, i) => (
             <span key={e.path}>
               {i > 0 && ", "}
-              <button type="button" onClick={() => goToField(e.path)} className="font-medium text-teal-800 underline underline-offset-2">
+              <button type="button" onClick={() => goToField(e.path)} className="font-semibold text-brand-800 underline underline-offset-2">
                 {labelOfPath(fields, e.path)}
               </button>
             </span>
@@ -209,7 +210,7 @@ function RecordView({ record: r }: { record: RecordDetail }) {
       )}
       {dialog && (
         <div className="space-y-2">
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-medium text-ink-800">
             {dialog === "return" ? "What needs fixing?" : "Reason for reopening"}
             <textarea autoFocus value={comment} onChange={(e) => setComment(e.target.value)} rows={3} className={inputClass} />
           </label>
@@ -261,20 +262,17 @@ function RecordView({ record: r }: { record: RecordDetail }) {
 
   return (
     <div className={`space-y-4 ${isForm ? "mx-auto max-w-3xl" : ""}`}>
-      <header>
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="text-xl font-bold text-slate-800">{r.template_title}</h1>
-          <StatusBadge status={r.status} main />
-        </div>
-        <p className="mt-1 text-sm text-slate-700">
-          <Link to={`/patients/${encodeURIComponent(r.reg_no)}`} className="font-semibold text-teal-800 underline underline-offset-2">
-            Patient {r.reg_no}
-          </Link>
-          {" · "}
-          {isForm ? "Started" : "Uploaded"} by {r.created_by_name}
-          {r.document_date ? ` · ${dateLabel(r.document_date)}` : ""}
-        </p>
-      </header>
+      <PageHeader
+        back={{ to: `/patients/${encodeURIComponent(r.reg_no)}`, label: `Patient ${r.reg_no}` }}
+        title={r.template_title}
+        titleAddon={<StatusBadge status={r.status} main />}
+        subtitle={
+          <>
+            {isForm ? "Started" : "Uploaded"} by {r.created_by_name}
+            {r.document_date ? ` · ${dateLabel(r.document_date)}` : ""}
+          </>
+        }
+      />
 
       {r.duplicate_of.length > 0 && (
         <Notice tone="warn">
@@ -292,8 +290,8 @@ function RecordView({ record: r }: { record: RecordDetail }) {
         </Notice>
       )}
       {r.status === "processing" && (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl bg-slate-100 p-3 text-sm text-slate-800">
-          <Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-ink-200 bg-white p-3.5 text-sm text-ink-800">
+          <Loader2 aria-hidden="true" className="size-5 animate-spin text-brand-700 motion-reduce:animate-none" />
           <span className="flex-1">Reading this document…</span>
           {actions.includes("fill_by_hand") && (
             <button type="button" disabled={busy} onClick={() => void run("fill_by_hand")} className={secondaryButton}>
@@ -304,13 +302,13 @@ function RecordView({ record: r }: { record: RecordDetail }) {
       )}
       {r.status === "draft" && r.extraction_status === "failed" && <Notice tone="warn">This document could not be read. Fill the form in by hand.</Notice>}
       {r.status === "draft" && r.extraction && (
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-ink-700">
           Filled in from the photo. Check the amber fields, and tap any field to see where it was read.
         </p>
       )}
-      {isForm && editable && <p className="text-sm text-slate-700">Answers save by themselves, so you can stop and come back. Only the starred questions are needed before sending.</p>}
+      {isForm && editable && <p className="text-sm text-ink-700">Answers save by themselves, so you can stop and come back. Only the starred questions are needed before sending.</p>}
       {isHospital && r.hospital_snapshot && editable && (
-        <p className="text-sm text-slate-700">Fields marked “From hospital” came from the hospital system. Fill in the rest; after an admin approves, the hospital gets them too.</p>
+        <p className="text-sm text-ink-700">Fields marked “From hospital” came from the hospital system. Fill in the rest; after an admin approves, the hospital gets them too.</p>
       )}
       {isHospital && r.status === "approved" && <HospitalSync record={r} canAct={me.role === "admin"} onDone={store} />}
       {conflict && (
@@ -336,7 +334,7 @@ function RecordView({ record: r }: { record: RecordDetail }) {
           {actionBar}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
           <PageViewer files={r.files} marks={sources} />
           <div className="space-y-4">
             {form}
@@ -351,7 +349,7 @@ function RecordView({ record: r }: { record: RecordDetail }) {
 
 /** Floats just above the action bar, so the bar never changes height as the doctor types. */
 function SaveStatus({ state, dirty }: { state: SaveState; dirty: boolean }) {
-  const base = "absolute bottom-full right-3 mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs shadow-sm ring-1 ring-slate-200";
+  const base = "absolute bottom-full right-3 mb-2 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs shadow-float ring-1 ring-ink-200";
   if (state === "error") {
     return (
       <span className={`${base} font-medium text-amber-800`}>
@@ -360,10 +358,10 @@ function SaveStatus({ state, dirty }: { state: SaveState; dirty: boolean }) {
       </span>
     );
   }
-  if (dirty || state === "saving") return <span className={`${base} text-slate-700`}>Saving…</span>;
+  if (dirty || state === "saving") return <span className={`${base} text-ink-700`}>Saving…</span>;
   if (state !== "saved") return null;
   return (
-    <span className={`${base} text-teal-800`}>
+    <span className={`${base} text-brand-800`}>
       <Check aria-hidden="true" className="size-3.5" />
       Saved
     </span>
@@ -373,11 +371,11 @@ function SaveStatus({ state, dirty }: { state: SaveState; dirty: boolean }) {
 function History({ events, isForm }: { events: EventOut[]; isForm: boolean }) {
   return (
     <section className={card}>
-      <h2 className="mb-2 font-semibold text-slate-800">History</h2>
-      <ol className="space-y-1.5 text-sm text-slate-700">
+      <h2 className={`mb-3 ${sectionTitle}`}>History</h2>
+      <ol className="space-y-2 text-sm text-ink-700">
         {historyLines(events, isForm ? "started this form" : undefined).map((line) => (
-          <li key={line.id}>
-            <span className="tabular-nums text-slate-600">{dateTimeLabel(line.at)}</span> · {line.actor} {line.text}
+          <li key={line.id} className="relative pl-5 before:absolute before:left-0 before:top-[0.5625rem] before:size-1.5 before:rounded-full before:bg-ink-400">
+            <span className="tabular-nums text-ink-600">{dateTimeLabel(line.at)}</span> · {line.actor} {line.text}
             {line.comment ? `: ${line.comment}` : ""}
           </li>
         ))}

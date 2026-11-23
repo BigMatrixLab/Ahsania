@@ -24,12 +24,15 @@ export function PageViewer({ files, marks = [] }: { files: FileOut[]; marks?: So
   const shown = natural ? marks.filter((m) => m.page === current + 1) : [];
   const pct = (value: number, total: number) => `${(value / total) * 100}%`;
   return (
-    <details open className={`${card} group space-y-2 self-start md:sticky md:top-3`}>
-      <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-sm font-medium text-slate-700 [&::-webkit-details-marker]:hidden">
+    <details open className={`${card} group space-y-3 self-start lg:sticky lg:top-20`}>
+      <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-sm text-ink-700 [&::-webkit-details-marker]:hidden">
         <span className="flex-1">
-          Page {current + 1} of {pages.length} · pinch or scroll to zoom
+          <span className="font-semibold text-ink-900">
+            Page {current + 1} of {pages.length}
+          </span>
+          <span className="hidden sm:inline"> · pinch or scroll to zoom</span>
         </span>
-        <ChevronDown aria-hidden="true" className="size-5 text-slate-500 transition-transform duration-200 group-open:rotate-180" />
+        <ChevronDown aria-hidden="true" className="size-5 text-ink-500 transition-transform duration-200 group-open:rotate-180" />
       </summary>
       <TransformWrapper key={file.id}>
         <TransformComponent wrapperClass="!w-full" contentClass="!w-full">
@@ -37,7 +40,7 @@ export function PageViewer({ files, marks = [] }: { files: FileOut[]; marks?: So
             <img
               src={`/api/files/${file.id}`}
               alt={`Page ${current + 1}`}
-              className="w-full rounded-lg"
+              className="w-full rounded-lg border border-ink-200"
               onLoad={(e) => setSize({ id: file.id, w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
             />
             {natural &&
@@ -45,7 +48,7 @@ export function PageViewer({ files, marks = [] }: { files: FileOut[]; marks?: So
                 <div
                   key={i}
                   data-testid="source-box"
-                  className="pointer-events-none absolute rounded-sm border-2 border-teal-600 bg-teal-500/10"
+                  className="pointer-events-none absolute rounded-sm border-2 border-brand-600 bg-brand-500/15 ring-2 ring-white/70"
                   style={{
                     left: pct(m.box[0], natural.w),
                     top: pct(m.box[1], natural.h),
