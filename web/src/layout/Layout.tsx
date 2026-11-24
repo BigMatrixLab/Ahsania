@@ -60,11 +60,15 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="mx-auto flex h-14 max-w-[88rem] items-center gap-3 px-4 md:px-6">
             <Link to="/" className="flex min-w-0 items-center gap-3 rounded-lg py-1 pr-2">
               <img src="/logo-amcgh.png" alt="" className="h-9 w-auto shrink-0" />
-              <span className="min-w-0 leading-tight">
+              <span className="sr-only min-w-0 leading-tight sm:not-sr-only sm:block">
                 <span className="block truncate text-[0.9375rem] font-semibold text-ink-900">AMCGH Capture</span>
                 <span className="hidden truncate text-xs text-ink-600 lg:block">Ahsania Mission Cancer &amp; General Hospital</span>
               </span>
             </Link>
+            <span className="flex shrink-0 items-center gap-2.5 border-l border-ink-200 pl-3">
+              <img src="/logo-bigmatrix.png" alt="Big-Matrix Lab" className="h-6 w-auto md:h-7" />
+              <img src="/logo-nsu.png" alt="North South University" className="h-8 w-auto md:h-9" />
+            </span>
             <div className="ml-auto flex items-center gap-1.5 md:gap-3">
               <OutboxCount />
               <div className="flex items-center gap-2.5">
