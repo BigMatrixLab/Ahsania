@@ -1,45 +1,56 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { UserPlus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { api, json } from "../api/client";
 import { useAccounts } from "../api/hooks";
 import type { Account, Role } from "../api/types";
 import { useCurrentUser } from "../auth/RequireAuth";
 import { ROLE_LABEL } from "../auth/roles";
-import { card, inputClass, primaryButton, secondaryButton } from "../ui/styles";
+import { EmptyState } from "../ui/EmptyState";
+import { Notice } from "../ui/Notice";
+import { PageHeader } from "../ui/PageHeader";
+import { ListSkeleton } from "../ui/Skeleton";
+import { card, inputClass, primaryButton, secondaryButton, sectionTitle } from "../ui/styles";
 
 export default function AccountsPage() {
   const me = useCurrentUser();
   const accounts = useAccounts(me.role === "admin");
-  if (me.role !== "admin") return <p>Only an admin can manage accounts.</p>;
+  if (me.role !== "admin") return <EmptyState>Only an admin can manage accounts.</EmptyState>;
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-bold text-slate-800">Accounts</h1>
-      {accounts.isPending ? (
-        <p>Loading…</p>
-      ) : accounts.isError ? (
-        <p role="alert" className="text-red-700">{accounts.error.message}</p>
-      ) : (
-        <AccountTable accounts={accounts.data} myId={me.id} />
-      )}
-      <CreateAccount />
+    <div>
+      <PageHeader title="Accounts" subtitle="Doctors capture and review their own records. Admins approve them and manage accounts." />
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-8">
+        <div className="lg:col-start-1 lg:row-start-1">
+          {accounts.isPending ? (
+            <ListSkeleton />
+          ) : accounts.isError ? (
+            <Notice tone="error">{accounts.error.message}</Notice>
+          ) : (
+            <AccountTable accounts={accounts.data} myId={me.id} />
+          )}
+        </div>
+        <div className="lg:col-start-2 lg:row-start-1 lg:sticky lg:top-24">
+          <CreateAccount />
+        </div>
+      </div>
     </div>
   );
 }
 
 function AccountTable({ accounts, myId }: { accounts: Account[]; myId: number }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-ink-200 bg-white">
       <table className="w-full text-left text-sm">
-        <thead className="hidden bg-slate-50 text-slate-700 md:table-header-group">
+        <thead className="hidden border-b border-ink-200 bg-ink-50 text-xs font-semibold text-ink-700 md:table-header-group">
           <tr>
-            <th className="rounded-tl-2xl p-3">Name</th>
-            <th className="p-3">ID</th>
-            <th className="p-3">Role</th>
-            <th className="p-3">Status</th>
-            <th className="rounded-tr-2xl p-3" />
+            <th className="px-4 py-3">Name</th>
+            <th className="px-4 py-3">ID</th>
+            <th className="px-4 py-3">Role</th>
+            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3" />
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200">
+        <tbody className="divide-y divide-ink-100">
           {accounts.map((a) => (
             <AccountRow key={a.id} account={a} isMe={a.id === myId} />
           ))}
@@ -71,13 +82,18 @@ function AccountRow({ account: a, isMe }: { account: Account; isMe: boolean }) {
   }
 
   return (
-    <tr className="block p-3 md:table-row md:p-0">
-      <td className="block font-semibold text-slate-900 md:table-cell md:p-3 md:font-normal">{a.name}</td>
-      <td className="inline-block pr-3 text-slate-700 md:table-cell md:p-3">{a.username}</td>
-      <td className="inline-block pr-3 text-slate-700 md:table-cell md:p-3">{ROLE_LABEL[a.role]}</td>
-      <td className={`inline-block md:table-cell md:p-3 ${a.active ? "text-slate-700" : "font-medium text-amber-800"}`}>{a.active ? "Active" : "Deactivated"}</td>
-      <td className="mt-2 block space-y-2 md:mt-0 md:table-cell md:p-3">
-        <div className="flex flex-wrap gap-2">
+    <tr className="block px-4 py-3.5 md:table-row md:p-0">
+      <td className="block font-semibold text-ink-900 md:table-cell md:px-4 md:py-3.5">{a.name}</td>
+      <td className="inline-block pr-3 text-ink-700 md:table-cell md:px-4 md:py-3.5">{a.username}</td>
+      <td className="inline-block pr-3 text-ink-700 md:table-cell md:px-4 md:py-3.5">{ROLE_LABEL[a.role]}</td>
+      <td className="inline-block md:table-cell md:px-4 md:py-3.5">
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${a.active ? "bg-brand-50 text-brand-800" : "bg-amber-100 text-amber-900"}`}>
+          <span aria-hidden="true" className={`size-1.5 rounded-full ${a.active ? "bg-brand-600" : "bg-amber-600"}`} />
+          {a.active ? "Active" : "Deactivated"}
+        </span>
+      </td>
+      <td className="mt-3 block space-y-2 md:mt-0 md:table-cell md:px-4 md:py-3">
+        <div className="flex flex-wrap gap-2 md:justify-end">
           {!isMe && (
             <button type="button" disabled={busy} onClick={() => update({ active: !a.active }, a.active ? "Deactivated" : "Reactivated")} className={secondaryButton}>
               {a.active ? "Deactivate" : "Reactivate"}
@@ -90,9 +106,9 @@ function AccountRow({ account: a, isMe }: { account: Account; isMe: boolean }) {
           )}
         </div>
         {password !== null && (
-          <div className="flex flex-wrap items-end gap-2">
+          <div className="flex flex-wrap items-end gap-2 md:justify-end">
             <label className="block">
-              <span className="text-xs font-medium">New password for {a.username}</span>
+              <span className="text-xs font-medium text-ink-800">New password for {a.username}</span>
               <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
             </label>
             <button type="button" disabled={busy || password.length < 10} onClick={() => update({ password }, "Password changed")} className={primaryButton}>
@@ -103,7 +119,11 @@ function AccountRow({ account: a, isMe }: { account: Account; isMe: boolean }) {
             </button>
           </div>
         )}
-        {message && <p role="status" className="text-xs text-slate-700">{message}</p>}
+        {message && (
+          <p role="status" className="text-xs text-ink-700 md:text-right">
+            {message}
+          </p>
+        )}
       </td>
     </tr>
   );
@@ -137,30 +157,35 @@ function CreateAccount() {
   }
 
   return (
-    <form onSubmit={submit} className={`${card} max-w-md space-y-3`}>
-      <h2 className="text-lg font-semibold">New account</h2>
+    <form onSubmit={submit} className={`${card} space-y-4`}>
+      <h2 className={`${sectionTitle} flex items-center gap-2`}>
+        <UserPlus aria-hidden="true" className="size-4.5 text-brand-700" />
+        New account
+      </h2>
       <label className="block">
-        <span className="text-sm font-medium">Name</span>
+        <span className="text-sm font-medium text-ink-800">Name</span>
         <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Dr. Rahman" className={inputClass} />
       </label>
       <label className="block">
-        <span className="text-sm font-medium">ID</span>
+        <span className="text-sm font-medium text-ink-800">ID</span>
         <input required value={username} onChange={(e) => setUsername(e.target.value)} placeholder="dr.rahman" autoComplete="off" autoCapitalize="none" spellCheck={false} className={inputClass} />
       </label>
+      <div>
+        <label className="block">
+          <span className="text-sm font-medium text-ink-800">Password</span>
+          <input type="password" required minLength={10} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" className={inputClass} />
+        </label>
+        <p className="mt-1 text-xs text-ink-600">At least 10 characters.</p>
+      </div>
       <label className="block">
-        <span className="text-sm font-medium">Password</span>
-        <input type="password" required minLength={10} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" className={inputClass} />
-      </label>
-      <p className="-mt-2 text-xs text-slate-600">At least 10 characters.</p>
-      <label className="block">
-        <span className="text-sm font-medium">Role</span>
+        <span className="text-sm font-medium text-ink-800">Role</span>
         <select value={role} onChange={(e) => setRole(e.target.value as Role)} className={inputClass}>
           <option value="doctor">Doctor</option>
           <option value="admin">Admin</option>
         </select>
       </label>
-      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-      <button type="submit" disabled={busy} className={primaryButton}>
+      {error && <Notice tone="error">{error}</Notice>}
+      <button type="submit" disabled={busy} className={`${primaryButton} w-full`}>
         Create account
       </button>
     </form>

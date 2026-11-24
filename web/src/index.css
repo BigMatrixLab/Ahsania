@@ -1,29 +1,80 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens.
+ * brand = the green of the AMCGH crest, used for identity, primary actions and "approved".
+ * ink   = a neutral with a faint green cast, so greys sit comfortably next to the brand.
+ * Amber and red are reserved for things that need a person's attention (check / fix),
+ * so no status colour in the app competes with them.
+ */
+@theme {
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+
+  --color-brand-50: #eef7f1;
+  --color-brand-100: #d6ecdd;
+  --color-brand-200: #b0d9bf;
+  --color-brand-300: #82c09a;
+  --color-brand-400: #4fa273;
+  --color-brand-500: #2b8658;
+  --color-brand-600: #1f6f48;
+  --color-brand-700: #195a3b;
+  --color-brand-800: #144830;
+  --color-brand-900: #0f3624;
+  --color-brand-950: #09231a;
+
+  --color-ink-50: #f6f8f7;
+  --color-ink-100: #eceff0;
+  --color-ink-200: #dde2e3;
+  --color-ink-300: #c4cccd;
+  --color-ink-400: #9ba7a8;
+  --color-ink-500: #6f7d7f;
+  --color-ink-600: #566264;
+  --color-ink-700: #404b4d;
+  --color-ink-800: #2b3436;
+  --color-ink-900: #1b2224;
+  --color-ink-950: #101517;
+
+  --color-paper: #f3f5f4;
+
+  --shadow-bar: 0 -8px 24px -14px rgb(15 54 36 / 0.35);
+  --shadow-float: 0 10px 30px -14px rgb(15 54 36 / 0.35), 0 2px 6px -2px rgb(15 54 36 / 0.1);
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    scroll-padding-top: 5rem;
   }
   body {
-    background-color: var(--color-slate-50);
-    color: var(--color-slate-900);
+    background-color: var(--color-paper);
+    color: var(--color-ink-900);
   }
   ::selection {
-    background-color: var(--color-teal-200);
-    color: var(--color-teal-950);
+    background-color: var(--color-brand-200);
+    color: var(--color-brand-950);
   }
   :focus-visible {
-    outline: 2px solid var(--color-teal-600);
+    outline: 2px solid var(--color-brand-600);
     outline-offset: 2px;
   }
   input,
   textarea,
   select {
-    caret-color: var(--color-teal-700);
+    caret-color: var(--color-brand-700);
   }
   h1,
   h2,
   h3 {
     text-wrap: balance;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

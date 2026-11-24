@@ -68,7 +68,7 @@ describe("PhotosStep", () => {
   it("offers photo, gallery and files", () => {
     render(<PhotosStep pages={[]} onChange={() => {}} onBack={() => {}} onNext={() => {}} />);
     expect(screen.getByRole("button", { name: "Take photo" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Gallery" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Choose from gallery" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Files or PDF" })).toBeTruthy();
     expect(screen.getByTestId("files-input").getAttribute("accept")).toContain("application/pdf");
   });

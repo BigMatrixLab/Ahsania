@@ -73,7 +73,7 @@ export function FormRenderer({ fields, values, onChange, errors, readOnly, flags
     <div className="space-y-3">
       {groups.map((group, i) =>
         group.name ? (
-          <Section key={group.name} name={group.name} fields={group.fields} ctx={ctx} startOpen={i === 0 && !allFromHospital(group.fields, ctx)} />
+          <Section key={group.name} name={group.name} fields={group.fields} ctx={ctx} startOpen={(i === 0 && !allFromHospital(group.fields, ctx)) || needsLook(group.fields, ctx)} />
         ) : (
           <div key={i} className="space-y-4">
             {group.fields.map((field) => (
@@ -125,16 +125,19 @@ function Section({ name, fields, ctx, startOpen }: { name: string; fields: Field
   }, [problems]);
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="flex min-h-14 w-full items-center gap-2 rounded-2xl px-4 py-3 text-left">
-        <span className="flex-1 font-semibold text-slate-800">{name}</span>
-        {needed > 0 && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{needed} needed</span>}
-        <span className="text-sm tabular-nums text-slate-600">
+    <section className="overflow-hidden rounded-xl border border-ink-200 bg-white">
+      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-ink-50">
+        <span className="flex-1 font-semibold text-ink-900">{name}</span>
+        {needed > 0 && <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900">{needed} needed</span>}
+        <span className="text-sm tabular-nums text-ink-600">
           {answered} of {shown.length}
         </span>
-        <ChevronDown aria-hidden="true" className={`size-5 shrink-0 text-slate-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown aria-hidden="true" className={`size-5 shrink-0 text-ink-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
-      <div hidden={!open} className="grid gap-x-6 gap-y-4 border-t border-slate-100 p-4 sm:grid-cols-2">
+      <div aria-hidden="true" className="h-0.5 bg-ink-100">
+        <div className="h-full bg-brand-500 transition-[width] duration-300" style={{ width: shown.length === 0 ? "0%" : `${(answered / shown.length) * 100}%` }} />
+      </div>
+      <div hidden={!open} className="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2">
         {fields.map((field) => (
           <FieldView key={field.key} field={field} parts={[field.key]} ctx={ctx} />
         ))}
@@ -144,14 +147,14 @@ function Section({ name, fields, ctx, startOpen }: { name: string; fields: Field
 }
 
 const SHELL: Partial<Record<AiColour, string>> = {
-  amber: "-mx-2 rounded-xl bg-amber-50 p-2 ring-1 ring-amber-300",
-  red: "-mx-2 rounded-xl bg-red-50 p-2 ring-1 ring-red-300",
+  amber: "-mx-2 rounded-lg bg-amber-50 p-2 ring-1 ring-amber-300",
+  red: "-mx-2 rounded-lg bg-red-50 p-2 ring-1 ring-red-300",
 };
 
 function AiTag({ colour }: { colour: AiColour }) {
   if (colour === "green") {
     return (
-      <span title={AI_LABEL.green} className="text-teal-700">
+      <span title={AI_LABEL.green} className="text-brand-700">
         <Check aria-hidden="true" className="size-4" />
         <span className="sr-only">{AI_LABEL.green}</span>
       </span>
@@ -178,7 +181,7 @@ function SourceSnippet({ file, box }: { file: FileOut; box: SourceBox["box"] }) 
   const width = Math.min(image.naturalWidth, box[2] + pad) - x0;
   const height = Math.min(image.naturalHeight, box[3] + pad) - y0;
   return (
-    <div data-testid="source-snippet" className="mt-2 w-full overflow-hidden rounded-lg border border-teal-300 bg-white" style={{ maxWidth: width }}>
+    <div data-testid="source-snippet" className="mt-2 w-full overflow-hidden rounded-lg border border-brand-300 bg-white" style={{ maxWidth: width }}>
       <div className="relative w-full" style={{ aspectRatio: `${width} / ${height}` }}>
         <img
           src={url}
@@ -198,6 +201,14 @@ function Snippet({ ctx, path, ai }: { ctx: Context; path: string; ai: AiField | 
   return <SourceSnippet file={file} box={source.box} />;
 }
 
+/** The photo reading left an amber or red value in this section: open it, so nothing to check stays out of sight. */
+function needsLook(fields: FieldDef[], ctx: Context): boolean {
+  return fields.some((f) => {
+    const colour = aiMarker(ctx.extraction, f.key, ctx.values[f.key])?.colour;
+    return colour === "amber" || colour === "red";
+  });
+}
+
 /** Nothing left to check in this section: every field holds the hospital's own value. */
 function allFromHospital(fields: FieldDef[], ctx: Context): boolean {
   return ctx.hospital !== null && fields.every((f) => hospitalNote(ctx.hospital, f.key, ctx.values[f.key])?.kind === "from");
@@ -207,7 +218,7 @@ function HospitalNote({ ctx, path }: { ctx: Context; path: string }) {
   const note = hospitalNote(ctx.hospital, path, ctx.values[path]);
   if (!note) return null;
   if (note.kind === "from") {
-    return <p className="mt-1 inline-block rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800 ring-1 ring-sky-200">From hospital</p>;
+    return <p className="mt-1 inline-block rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-medium text-cyan-900 ring-1 ring-cyan-200">From hospital</p>;
   }
   return (
     <p className="mt-1 flex gap-1 text-sm text-amber-800">
@@ -222,8 +233,8 @@ function Notes({ field, ctx, path, error, value }: { field: FieldDef; ctx: Conte
   return (
     <>
       <HospitalNote ctx={ctx} path={path} />
-      {field.type === "date" && typeof value === "string" && value && <p className="mt-1 text-xs text-slate-600">{dateLabel(value)}</p>}
-      {field.hint && <p className="mt-1 text-xs text-slate-600">{field.hint}</p>}
+      {field.type === "date" && typeof value === "string" && value && <p className="mt-1 text-xs text-ink-600">{dateLabel(value)}</p>}
+      {field.hint && <p className="mt-1 text-xs text-ink-600">{field.hint}</p>}
       {flag && <p className="mt-1 text-sm text-amber-800">Reviewer: {flag}</p>}
       {error && <p className="mt-1 text-sm font-medium text-red-700">{error}</p>}
     </>
@@ -256,7 +267,7 @@ function FieldView({ field, parts, ctx }: { field: FieldDef; parts: PathPart[]; 
     return shell(
       <>
         <div className="flex items-center justify-between gap-3">
-          <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-medium text-slate-800">
+          <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-medium text-ink-800">
             <span id={labelId}>
               {labelOf(field)}
               {stars}
@@ -285,7 +296,7 @@ function FieldView({ field, parts, ctx }: { field: FieldDef; parts: PathPart[]; 
     return shell(
       <>
         <div className="flex items-center gap-1.5">
-          <span id={labelId} className="text-sm font-medium text-slate-800">
+          <span id={labelId} className="text-sm font-medium text-ink-800">
             {labelOf(field)}
             {stars}
           </span>
@@ -303,7 +314,7 @@ function FieldView({ field, parts, ctx }: { field: FieldDef; parts: PathPart[]; 
   return shell(
     <>
       <div className="flex items-center gap-1.5">
-        <label htmlFor={id} className="text-sm font-medium text-slate-800">
+        <label htmlFor={id} className="text-sm font-medium text-ink-800">
           {labelOf(field)}
           {stars}
         </label>
@@ -357,11 +368,11 @@ function Choice({
     <div role="radiogroup" aria-labelledby={labelledBy} className={`flex gap-1.5 ${inline ? "shrink-0" : "flex-wrap"}`}>
       {options.map((option) => {
         const selected = value === option.value;
-        const tone = selected ? "border-teal-700 bg-teal-700 text-white" : `bg-white text-slate-800 hover:bg-teal-50 ${invalid ? "border-red-500" : "border-slate-300"}`;
+        const tone = selected ? "border-brand-700 bg-brand-700 text-white" : `bg-white text-ink-800 hover:bg-brand-50 ${invalid ? "border-red-500" : "border-ink-300"}`;
         return (
           <label
             key={option.label}
-            className={`relative inline-flex min-h-11 min-w-12 cursor-pointer items-center justify-center rounded-xl border px-3 text-sm font-medium transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-teal-600 ${tone}`}
+            className={`relative inline-flex min-h-11 min-w-12 cursor-pointer items-center justify-center rounded-lg border px-3.5 text-sm font-medium transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand-600 ${tone}`}
           >
             <input
               type="radio"
@@ -397,13 +408,13 @@ function GroupView({ field, parts, value, ctx }: { field: Extract<FieldDef, { ty
   const items = Array.isArray(value) ? value : [];
   return (
     <fieldset className="space-y-3 sm:col-span-2">
-      <legend className="font-medium text-slate-800">
+      <legend className="font-medium text-ink-800">
         {label} ({items.length})
       </legend>
       {items.map((_, i) => (
         <div key={i} className={`${card} space-y-3`}>
           <div className="flex items-center justify-between">
-            <span className="font-medium text-slate-800">
+            <span className="font-medium text-ink-800">
               {label} {i + 1}
             </span>
             <button type="button" aria-label={`Remove ${label.toLowerCase()} ${i + 1}`} onClick={() => ctx.set(parts, items.filter((__, j) => j !== i))} className={quietButton}>
@@ -431,7 +442,7 @@ function ReadOnlyBlock({ name, fields, ctx }: { name: string | null; fields: Fie
   const blank = shown.filter((f) => isEmptyValue(ctx.values[f.key])).map(labelOf);
   return (
     <section className={card}>
-      {name && <h2 className="mb-3 font-semibold text-slate-800">{name}</h2>}
+      {name && <h2 className="mb-3 text-base font-semibold text-ink-900">{name}</h2>}
       {filled.length > 0 && (
         <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
           {filled.map((field) => (
@@ -439,7 +450,7 @@ function ReadOnlyBlock({ name, fields, ctx }: { name: string | null; fields: Fie
           ))}
         </dl>
       )}
-      {blank.length > 0 && <p className={`text-sm text-slate-600 ${filled.length > 0 ? "mt-3" : ""}`}>Not recorded: {blank.join(", ")}</p>}
+      {blank.length > 0 && <p className={`text-sm text-ink-600 ${filled.length > 0 ? "mt-3" : ""}`}>Not recorded: {blank.join(", ")}</p>}
     </section>
   );
 }
@@ -459,8 +470,8 @@ function ReadOnlyField({ field, parts, ctx }: { field: FieldDef; parts: PathPart
     return (
       <div className="space-y-2 sm:col-span-2">
         {items.map((item, i) => (
-          <div key={i} className="rounded-xl bg-slate-50 p-3">
-            <p className="mb-2 text-sm font-semibold text-slate-800">
+          <div key={i} className="rounded-xl bg-ink-50 p-3">
+            <p className="mb-2 text-sm font-semibold text-ink-800">
               {labelOf(field)}
               {field.repeat ? ` ${i + 1}` : ""}
             </p>
@@ -480,12 +491,12 @@ function ReadOnlyField({ field, parts, ctx }: { field: FieldDef; parts: PathPart
   const flag = ctx.flags[path];
   return (
     <div data-ai={ai?.colour} data-field={path} className={field.type === "text" ? "sm:col-span-2" : undefined}>
-      <dt className="text-xs font-medium text-slate-600">{labelOf(field)}</dt>
-      <dd className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-900">
+      <dt className="text-xs font-medium text-ink-600">{labelOf(field)}</dt>
+      <dd className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-900">
         <span className="whitespace-pre-wrap">{isEmptyValue(value) ? "—" : formatted(field, value)}</span>
         {ai && <AiTag colour={ai.colour} />}
         {(ai?.sources.length ?? 0) > 0 && (
-          <button type="button" onClick={() => ctx.touch(path, ai)} className="text-xs font-medium text-teal-800 underline underline-offset-2">
+          <button type="button" onClick={() => ctx.touch(path, ai)} className="text-xs font-medium text-brand-800 underline underline-offset-2">
             See on the page
           </button>
         )}
@@ -530,7 +541,7 @@ function NumberInput({ id, value, unit, onChange, className }: { id: string; val
         }}
         className={`${className} tabular-nums ${unit ? "pr-16" : ""}`}
       />
-      {unit && <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-600">{unit}</span>}
+      {unit && <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-ink-600">{unit}</span>}
     </div>
   );
 }

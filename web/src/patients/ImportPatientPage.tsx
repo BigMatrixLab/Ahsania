@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Check } from "lucide-react";
+import { Check, Search } from "lucide-react";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { ApiError, api } from "../api/client";
@@ -8,6 +8,7 @@ import type { RecordDetail, TemplateOut } from "../api/types";
 import { normalizeRegNo } from "../capture/PatientStep";
 import { newId } from "../storage/id";
 import { Notice } from "../ui/Notice";
+import { PageHeader } from "../ui/PageHeader";
 import { card, inputClass, primaryButton, quietButton } from "../ui/styles";
 import { NEW_PATIENT_FORM } from "./summary";
 
@@ -86,16 +87,13 @@ export default function ImportPatientPage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">Import patient</h1>
-        <p className="text-sm text-slate-700">Pick the patient from the hospital system. What the hospital has fills in; you type the rest. No names or phone numbers.</p>
-      </div>
+      <PageHeader back={{ to: "/", label: "Back" }} title="Import patient" subtitle="Pick the patient from the hospital system. What the hospital has fills in; you type the rest. No names or phone numbers." />
 
       {forms.length > 1 && (
         <fieldset className="flex flex-wrap gap-2">
-          <legend className="mb-1 text-sm font-medium">Form</legend>
+          <legend className="mb-2 text-sm font-medium text-ink-800">Form</legend>
           {forms.map((t) => (
-            <label key={t.key} className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm ${t.key === formKey ? "border-teal-700 bg-teal-50 font-medium text-teal-900" : "border-slate-300 bg-white"}`}>
+            <label key={t.key} className={`inline-flex min-h-10 cursor-pointer items-center rounded-full border px-4 text-sm has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand-600 ${t.key === formKey ? "border-brand-700 bg-brand-700 font-medium text-white" : "border-ink-300 bg-white text-ink-800 hover:bg-ink-50"}`}>
               <input type="radio" name="form" value={t.key} checked={t.key === formKey} onChange={() => setChosen(t.key)} className="sr-only" />
               {t.title}
             </label>
@@ -109,23 +107,26 @@ export default function ImportPatientPage() {
       {!hospitalDown && (
         <section className={`${card} space-y-3`}>
           <label className="block">
-            <span className="text-sm font-medium">Search RC number</span>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="RC500…" autoComplete="off" autoCapitalize="characters" className={inputClass} />
+            <span className="text-sm font-medium text-ink-800">Search RC number</span>
+            <span className="relative block">
+              <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-500" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="RC500…" autoComplete="off" autoCapitalize="characters" className={`${inputClass} pl-9`} />
+            </span>
           </label>
-          {patients.isPending && <p className="text-sm text-slate-600">Loading the hospital's patients…</p>}
-          {patients.data && matches.length === 0 && <p className="text-sm text-slate-600">No RC number matches.</p>}
-          <ul className="max-h-80 space-y-1 overflow-y-auto">
+          {patients.isPending && <p className="text-sm text-ink-600">Loading the hospital's patients…</p>}
+          {patients.data && matches.length === 0 && <p className="text-sm text-ink-600">No RC number matches.</p>}
+          <ul className="max-h-80 divide-y divide-ink-100 overflow-y-auto rounded-lg border border-ink-200">
             {matches.slice(0, MAX_SHOWN).map((p) => (
               <li key={p.rc}>
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => void create(p.rc, true)}
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left font-mono text-sm hover:bg-teal-50 focus:bg-teal-50 disabled:opacity-60"
+                  className="flex min-h-11 w-full items-center justify-between px-3 py-2 text-left text-sm font-medium tabular-nums transition-colors hover:bg-brand-50 focus:bg-brand-50 disabled:opacity-60"
                 >
                   {p.rc}
                   {p.imported && (
-                    <span className="flex items-center gap-1 font-sans text-xs text-teal-800">
+                    <span className="flex items-center gap-1 text-xs font-medium text-brand-800">
                       <Check aria-hidden="true" className="size-3.5" /> imported
                     </span>
                   )}
@@ -133,7 +134,7 @@ export default function ImportPatientPage() {
               </li>
             ))}
           </ul>
-          {matches.length > MAX_SHOWN && <p className="text-xs text-slate-600">Showing {MAX_SHOWN} of {matches.length}. Type more of the number to narrow it.</p>}
+          {matches.length > MAX_SHOWN && <p className="text-xs text-ink-600">Showing {MAX_SHOWN} of {matches.length}. Type more of the number to narrow it.</p>}
           {!manual && (
             <button type="button" onClick={() => setManualOpen(true)} className={quietButton}>
               Not in the list? Type the RC number
@@ -145,10 +146,10 @@ export default function ImportPatientPage() {
       {manual && (
         <form onSubmit={startManual} className={`${card} space-y-3`}>
           <label className="block">
-            <span className="text-sm font-medium">Patient ID (RC…)</span>
+            <span className="text-sm font-medium text-ink-800">Patient ID (RC…)</span>
             <input value={regNo} onChange={(e) => setRegNo(e.target.value)} placeholder="RC12345" autoComplete="off" autoCapitalize="characters" className={inputClass} />
           </label>
-          <p className="text-xs text-slate-600">The form opens empty; fill it in by hand.</p>
+          <p className="text-xs text-ink-600">The form opens empty; fill it in by hand.</p>
           <button type="submit" disabled={busy} className={`${primaryButton} w-full`}>
             {busy ? "Starting…" : "Start form"}
           </button>

@@ -7,7 +7,8 @@ import { preparePage, rotateToCanvas, type PreparedPage } from "../imaging/rende
 import { Notice } from "../ui/Notice";
 import { primaryButton, quietButton, secondaryButton } from "../ui/styles";
 
-const TEAL = "#0f766e"; // the canvas cannot read Tailwind's colours
+const TEAL = "#195a3b"; // the canvas cannot read Tailwind's colours (brand-700)
+const FRAME = "#2b8658"; // brand-500: readable on both pale paper and dark film
 const FRAME_INSET = 12;
 
 interface Props {
@@ -68,9 +69,9 @@ export function CropEditor({ bitmap, onCancel, onDone }: Props) {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-slate-800">Crop and straighten</h2>
-      <p className="text-sm text-slate-700">Drag the frame's corners so only the document is inside.</p>
-      <div ref={containerRef} className="w-full overflow-hidden rounded-xl">
+      <h2 className="text-lg font-semibold text-ink-900">Crop and straighten</h2>
+      <p className="text-sm text-ink-700">Drag the frame's corners so only the document is inside.</p>
+      <div ref={containerRef} className="w-full overflow-hidden rounded-xl border border-ink-200 bg-ink-900">
         {stageWidth > 0 && (
           <Stage width={stageWidth} height={stageHeight}>
             <Layer>
@@ -81,7 +82,7 @@ export function CropEditor({ bitmap, onCancel, onDone }: Props) {
                 y={frame.y}
                 width={frame.w}
                 height={frame.h}
-                stroke={TEAL}
+                stroke={FRAME}
                 strokeWidth={3}
                 draggable
                 onDragEnd={(e) => setCrop({ ...frame, x: e.target.x(), y: e.target.y() })}
@@ -110,7 +111,7 @@ export function CropEditor({ bitmap, onCancel, onDone }: Props) {
         )}
       </div>
       {error && <Notice tone="error">{error}</Notice>}
-      <div className="flex flex-wrap justify-center gap-1">
+      <div className="flex flex-wrap justify-center gap-1 rounded-xl border border-ink-200 bg-white p-1">
         <button type="button" onClick={() => turn(270)} className={quietButton}>
           <RotateCcw aria-hidden="true" className="size-4" />
           Rotate left
@@ -123,7 +124,7 @@ export function CropEditor({ bitmap, onCancel, onDone }: Props) {
           Reset crop
         </button>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 border-t border-ink-200 pt-4">
         <button type="button" onClick={onCancel} className={secondaryButton}>
           Cancel
         </button>
