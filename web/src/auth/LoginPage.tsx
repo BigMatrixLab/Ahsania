@@ -49,6 +49,7 @@ export default function LoginPage() {
             <img src="/logo-amcgh.png" alt="Ahsania Mission Cancer & General Hospital" className="h-12 w-auto lg:h-16" />
             <span aria-hidden="true" className="h-10 w-px bg-ink-200 lg:h-12" />
             <img src="/logo-bigmatrix.png" alt="Big-Matrix Lab, Research & Development" className="h-9 w-auto lg:h-11" />
+            <img src="/logo-nsu.png" alt="North South University" className="h-12 w-auto lg:h-16" />
           </div>
           <h1 className="text-center text-4xl font-semibold tracking-tight lg:text-left lg:text-5xl">AMCGH Data Capture</h1>
         </div>
